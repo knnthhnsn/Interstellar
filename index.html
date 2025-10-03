@@ -12,6 +12,7 @@
             background: #000000;
             color: #FFFFFF;
             font-family: 'Roboto', sans-serif;
+            touch-action: manipulation; /* Faster touch response, no zoom/delay */
         }
         h1, h2 {
             color: #9ED24F;
@@ -56,40 +57,41 @@
             margin: 20px 0;
         }
         .cartoon-btn {
-            cursor: pointer;
-            background: linear-gradient(to bottom, #70C1B3, #40798C);
+            background-color: #FC814A;
             color: #FFFFFF;
             font-family: 'Space Grotesk', sans-serif;
             font-size: 1.5em;
             font-weight: bold;
             padding: 15px 40px;
-            border: 4px solid #2A4D5A;
+            border: 1px solid #000000;
             border-radius: 12px;
             box-shadow: 
                 0 1px 0 #000000,
-                0 6px 0 #2A4D5A,
+                0 6px 0 #FC814A,
                 0 10px 15px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             position: relative;
             text-transform: uppercase;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             box-sizing: border-box;
-        }
-        .cartoon-btn:hover {
-            transform: translateY(-3px) scale(1.1);
-            background: linear-gradient(to bottom, #FF9F80, #FC814A);
-            box-shadow: 
-                0 1px 0 #000000,
-                0 8px 0 #2A4D5A,
-                0 12px 20px rgba(0, 0, 0, 0.5);
+            /* Removed :hover; now touch-driven */
         }
         .cartoon-btn:active {
-            transform: translateY(2px) scale(1);
+            transform: translateY(2px) scale(0.95);
             box-shadow: 
                 0 1px 0 #000000,
-                0 4px 0 #2A4D5A,
+                0 4px 0 #FC814A,
                 0 5px 10px rgba(0, 0, 0, 0.3);
             transition: transform 0.1s ease, box-shadow 0.1s ease;
+            background-color: #E06B38; /* Deeper press color */
+        }
+        .cartoon-btn.pulse { /* Touchstart ring animation */
+            position: relative;
+            animation: orbital-ring 0.5s ease-out;
+        }
+        @keyframes orbital-ring {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            100% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
         }
         #reset-btn {
             width: 80px;
@@ -123,7 +125,7 @@
             left: 10px;
             padding: 10px 20px;
             font-size: 1.2em;
-            border: 6px solid #2A4D5A;
+            border:  1px solid #000000;
             z-index: 25;
         }
         #museum {
@@ -141,7 +143,6 @@
             height: 100%;
             background-size: cover;
             display: none;
-          /*  background-image: url('https://placehold.co/1920x1080/png?text=Space+Background'); */
         }
         .room.active {
             display: block;
@@ -151,27 +152,33 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: transform 1s ease-out; /* For drift back after touch */
         }
         .element {
-            cursor: pointer;
-            transition: transform 0.2s ease;
             border-radius: 50%;
             pointer-events: auto;
+            transition: transform 0.3s ease, filter 0.3s ease;
         }
-        .planet:hover {
+        /* Removed :hover; touchstart adds classes */
+        .planet.touch-active {
             transform: scale(1.5);
-            filter: drop-shadow(0 0 10px #FFFFFF);
+            filter: drop-shadow(0 0 10px #FFFFFF) brightness(1.2);
+            animation: pulse-glow 0.3s ease-in-out;
         }
-        .blackhole:hover {
+        .blackhole.touch-active {
             transform: scale(2);
             filter: drop-shadow(0 0 10px #FFFFFF);
+            animation: pulse-glow 0.3s ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 5px #FFFFFF); }
+            50% { filter: drop-shadow(0 0 15px #FFFFFF); }
         }
         .saved {
             filter: brightness(1.2);
         }
         .attempted {
             pointer-events: none;
-            cursor: default;
         }
         .saved::after {
             content: '';
@@ -293,7 +300,6 @@
             z-index: 25;
         }
         .choice {
-            cursor: pointer;
             transition: transform 0.2s;
             width: 180px;
             height: auto;
@@ -312,28 +318,24 @@
             pointer-events: auto;
             width: 100%;
         }
-        .choice:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 10px #FFFFFF);
-        }
-        .choice:hover::before {
+        /* Removed :hover; touchstart adds ripple */
+        .choice.touch-active::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 50%;
-            height: 100%;
-            background: linear-gradient(
-                to right,
-                transparent 0%,
-                rgba(255, 255, 255, 0.3) 50%,
-                transparent 100%
-            );
-            animation: shine 0.5s forwards;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: ripple 0.5s ease-out forwards;
         }
-        @keyframes shine {
+        @keyframes ripple {
             to {
-                left: 100%;
+                width: 200px;
+                height: 200px;
+                opacity: 0;
             }
         }
         .choice:nth-child(1) {
@@ -347,6 +349,9 @@
         }
         .choice:nth-child(4) {
             background: #9ED24F;
+        }
+        .choice:active {
+            transform: scale(1.1);
         }
         .result-container {
             display: flex;
@@ -473,9 +478,14 @@
         .spinning-planet {
             animation: spin 10s linear infinite;
             border-radius: 50%;
+            transition: animation-duration 0.3s ease;
         }
-        .spinning-planet:hover {
-            animation-play-state: paused;
+        /* Removed :hover pause; touch changes speed/dir */
+        .spinning-planet.reverse {
+            animation-direction: reverse;
+        }
+        .spinning-planet.fast {
+            animation-duration: 2s;
         }
         @keyframes spin {
             from { transform: rotate(0deg); }
@@ -514,12 +524,6 @@
                     0 5px 0 #2A4D5A,
                     0 8px 10px rgba(0, 0, 0, 0.4);
             }
-            .cartoon-btn:hover {
-                box-shadow: 
-                    0 5px 0 #000000,
-                    0 7px 0 #2A4D5A,
-                    0 10px 15px rgba(0, 0, 0, 0.5);
-            }
             .cartoon-btn:active {
                 box-shadow: 
                     0 1px 0 #000000,
@@ -529,7 +533,7 @@
             .tilbage-btn {
                 padding: 8px 16px;
                 font-size: 1em;
-                border: 4px solid #2A4D5A;
+                border: 1px solid #000000;
             }
             #reset-btn {
                 width: 60px;
@@ -555,10 +559,11 @@
             }
             .choices-container {
                 gap: 20px;
+                padding: 0 10px;
             }
             .choice {
                 width: 140px;
-                padding: 10px;
+                padding: 15px; /* Larger touch target */
             }
             .panel {
                 padding: 10px;
@@ -598,6 +603,8 @@
             .end-scene p {
                 font-size: 1em;
             }
+            /* Mobile: Reduce animation intensity for perf */
+            .touch-active { animation-duration: 0.2s !important; }
         }
     </style>
 </head>
@@ -641,37 +648,37 @@
                             "question": "Hvordan kan vi gøre Mars beboelig?",
                             "choices": [
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Flydende+Byer",
-                                    "alt": "Bygge kæmpe kupler",
+                                    "image": "mars_l4.png",
+                                    "alt": "Plante Plante træer i kæmpe store områder af Mars",
+                                    "correct": false,
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Planter kræver jord, vand og et vist tryk. På Mars dør de hurtigt, fordi luften er for tynd, og jorden er ufrugtbar.",
+                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Iltmangel"
+                                },
+                                {
+                                    "image": "mars_l2.png",
+                                    "alt": "Bygge underjordiske byer og beskytte fra strålingen",
+                                    "correct": false,
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Uden ilt og tryk kollapsede De beskytter mod stråling, men uden ilt og tryk kan folk ikke overleve der uden massive systemer. Det gør det ekstremt svært i praksis.   ",
+                                    "deathImage": "https://placehold.co/400x300/png?text=Død+i+Kollaps"
+                                },
+                                {
+                                    "image": "mars_l3.png",
+                                    "alt": "Bygge store kupler hvor vi kan styre atmosfæren",
                                     "correct": true,
                                     "successText": "Korrekt! Kupler er realistiske, fordi vi kan styre ilt, tryk og temperatur. De fungerer som kæmpe drivhuse, hvor mennesker kan leve sikkert."
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Træer",
-                                    "alt": "Plante træer",
+                                    "image": "mars_l1.png",
+                                    "alt": "Opvarme Varme planeten op med store atomreaktorer atomreaktorer",
                                     "correct": false,
-                                    "deathText": "Planter kræver jord, vand og tryk. På Mars dør de hurtigt, og du døde af iltmangel.",
-                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Iltmangel"
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Underjordiske+Byer",
-                                    "alt": "Underjordiske byer",
-                                    "correct": false,
-                                    "deathText": "Uden ilt og tryk kollapsede systemerne, og du døde under jorden.",
-                                    "deathImage": "https://placehold.co/400x300/png?text=Død+i+Kollaps"
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Atomreaktorer",
-                                    "alt": "Opvarme med atomreaktorer",
-                                    "correct": false,
-                                    "deathText": "Atomreaktorer gav energi, men ændrede ikke atmosfæren. Du døde i Mars' kolde ørken.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> De kan give energi og lokal varme, men de kan ikke ændre hele planetens atmosfære. Mars ville stadig være en gold ørken.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+af+Kulde"
                                 }
                             ],
                             "image": "mars-ubeboelig.png",
                             "savedImage": "mars.png",
-                            "successAstronaut": "mars-korrekt-astro.png",
-                            "failureAstronaut": "mars-forkert-astro.png",
+                            "successAstronaut": "astronice.png",
+                            "failureAstronaut": "sad-astro1.png",
                             "position": { "top": "40%", "left": "50%" },
                             "alt": "Mars",
                             "size": 120,
@@ -688,37 +695,37 @@
                             "question": "Hvordan kan vi bo på en planet dækket af kilometerdybt vand?",
                             "choices": [
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Flydende+Byer",
-                                    "alt": "Bygge flydende byer",
-                                    "correct": true,
-                                    "successText": "Rigtigt! Flydende byer er realistiske – vi kan bygge dem ligesom store olieplatforme og skibe, bare meget større."
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Undervandsbyer",
-                                    "alt": "Undervandsbyer i kupler",
+                                    "image": "kepler_l1.png",
+                                    "alt": "Lave undervandsbyer i kupler",
                                     "correct": false,
-                                    "deathText": "Ved 1 km dybde knuste trykket kuplerne, og du døde.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Ved 1 km dybde er trykket 100 gange stærkere end på Jorden. Selv små fejl i kuplerne ville knuse dem.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Kollaps"
                                 },
+                                                                {
+                                    "image": "kepler_l2.png",
+                                    "alt": "Bygge flydende byer, som kan holde sig oven vande",
+                                    "correct": true,
+                                    "successText": "DU REDDEDE CA. 1 MIA. MENNESKER! Flydende byer er realistiske – vi kan bygge dem ligesom store olieplatforme og skibe, bare meget større."
+                                },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Importer+Jord",
-                                    "alt": "Importere jord",
+                                    "image": "kepler_l3.png",
+                                    "alt": "Transportere jord fra Jorden og lave øer",
                                     "correct": false,
-                                    "deathText": "80 mia. tons jord var umuligt at transportere, og du døde af udmattelse.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Der skal bruges 80 mia. tons jord til bare én ø. Selv med superfragter på 1 mia. tons pr. tur tager det 80 ture – helt urealistisk.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+af+Udmattelse"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Ubåde",
-                                    "alt": "Bo i kæmpe ubåde",
+                                    "image": "kepler_l4.png",
+                                    "alt": "Fordampe vandet,så der kommer land",
                                     "correct": false,
-                                    "deathText": "Millioner af ubåde var upraktiske, og du døde i en lækage.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> At koge havene væk kræver mere energi end hele Jorden bruger på tusinder af år. Selv med fremtidens teknologi ville det tage århundreder.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Lækage"
                                 }
                             ],
                             "image": "kepler-62f-ubeboelig.png",
                             "savedImage": "kepler-62f.png",
-                            "successAstronaut": "kepler62f-korrekt-astro.png",
-                            "failureAstronaut": "kepler62f-forkert-astro.png",
+                            "successAstronaut": "astronice.png",
+                            "failureAstronaut": "sad-astro1 copy.png",
                             "position": { "top": "60%", "left": "30%" },
                             "alt": "Kepler-62f",
                             "size": 110,
@@ -735,41 +742,41 @@
                             "question": "Hvordan overlever vi dobbelt tyngdekraft på Kepler-442b?",
                             "choices": [
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Exoskeletter",
-                                    "alt": "Udvikle exoskeletter",
-                                    "correct": true,
-                                    "successText": "Rigtigt! Exoskeletter gør hverdagen realistisk ved at hjælpe med at bære vægten uden at ændre kroppen biologisk."
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Undervandsbyer",
-                                    "alt": "Byer under vand",
+                                    "image": "kepler4_l1.png",
+                                    "alt": "Byg på høje bjerge, hvor tyngdekraften er lidt svagere",
                                     "correct": false,
-                                    "deathText": "Undervandsbyer var for dyre og komplekse, og du døde under byggeriet.",
+                                      "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Tyngdekraften er teknisk set lidt lavere højere oppe, men forskellen er minimal – det ville ikke gøre den store forskel.",
+                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Overanstrengelse"   },
+                                {
+                                    "image": "kepler_l3.png",
+                                    "alt": "Genmodificere kroppen til at blive stærkere",
+                                    "correct": false,
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Muligt på lang sigt, men ekstremt usikkert og uetisk. Ville tage mange generationer.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Byggeri"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Genmodifikation",
-                                    "alt": "Genmodificere kroppen",
+                                    "image": "kepler4_l2.png",
+                                    "alt": "Skabe byer under vand, hvor opdrift hjælper",
                                     "correct": false,
-                                    "deathText": "Genmodifikation mislykkedes over generationer, og du døde af komplikationer.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Smart ide, fordi vandets opdrift ville lette tyngden – men det er dyrt og svært at bygge undervandsbyer i stor skala.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+af+Komplikationer"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Bjerge",
-                                    "alt": "Bo på høje bjerge",
-                                    "correct": false,
-                                    "deathText": "Tyngdekraften var stadig for stærk på bjerge, og du døde af overanstrengelse.",
-                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Overanstrengelse"
+                                    "image": "kepler4_l4.png",
+                                    "alt": "Udvikle exoskeletter til at bære vægten",
+                                     "correct": true,
+                                    "successText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Mennesker kan bevare deres normale krop, men få hjælp af teknologien til at bære vægten. Det gør hverdagen realistisk og fleksibel, uden at vi behøver ændre os biologisk."
+                              
                                 }
                             ],
                             "image": "kepler-442b-ubeboelig.png",
                             "savedImage": "kepler-442b.png",
-                            "successAstronaut": "kepler442b-korrekt-astro.png",
-                            "failureAstronaut": "kepler442b-forkert-astro.png",
+                            "successAstronaut": "jump.png",
+                            "failureAstronaut": "sad-astro1.png",
                             "position": { "top": "20%", "left": "70%" },
                             "alt": "Kepler-442b",
                             "size": 110,
-                            "rocketImage": "astroman-travel.png",
+                            "rocketImage": "alien.png",
                             "startPos": {left: "100%", top: "0%"},
                             "endPos": {left: "0%", top: "100%"}
                         },
@@ -782,37 +789,37 @@
                             "question": "Hvordan kan vi bo på en planet med konstante 500 km/t storme og glasregn?",
                             "choices": [
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Ignorer+Planeten",
-                                    "alt": "Ignorer planeten",
-                                    "correct": true,
-                                    "successText": "Rigtigt! HD 189733b's ekstreme vinde og glasregn gør landing umulig. At ignorere planeten og søge andre muligheder redder ressourcer og liv."
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Aerodynamiske+Kupler",
-                                    "alt": "Aerodynamiske kupler",
+                                    "image": "hd_l2.png",
+                                    "alt": "Byg aereodynamiske kupler på overfladen",
                                     "correct": false,
-                                    "deathText": "Selv stærke kupler kollapsede under glasregnen, og du døde i ruinerne.",
+                                    "deathText": "DU MISTEDE CA. 1 MIA. MENNESKER <br><br> Selv de stærkeste materialer ville have svært ved at modstå konstante storme på 500 km/t. Vindtrykket er så voldsomt, at bygninger sandsynligvis ville kollapse.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Ruiner"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Luftskibe",
-                                    "alt": "Flyve i luftskibe",
+                                    "image": "hd_l3.png",
+                                    "alt": "Flyve i Flyv i kæmpe luftskibe over stormene",
                                     "correct": false,
-                                    "deathText": "Luftskibe blev revet i stykker af glasregnen, og du døde i styrtet.",
+                                    "deathText": "DU MISTEDE CA. 1 MIA. MENNESKER <br><br> Hele atmosfæren er fyldt med vinde – at holde sig stabilt i roligere lag ville være ekstremt svært. Et luftskib ville hurtigt blæse væk eller blive revet i stykker.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Styrt"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Vindenergi",
-                                    "alt": "Brug stormene som energi",
+                                    "image": "hdl1.png",
+                                    "alt": "Byg byer i bjergsider og kløfter",
                                     "correct": false,
-                                    "deathText": "Vindmøller blev ødelagt af glaspartikler, og du døde midt i stormen.",
+                                    "deathText": "DU MISTEDE CA. 1 MIA MENNESKER <br> <br> Det lyder smart at gemme sig i kløfter, men vinden her er så ekstrem, at selv i dybe dale bliver alt flået fra hinanden. 500 km/t svarer til konstant orkanstyrke – ingen bygning kan holde til det.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Storm"
-                                }
+                                },
+                                {
+                                    "image": "hd_l4.png",
+                                    "alt": "Forlad planet og flyv videre planet",
+                                    "correct": true,
+                                    "successText": "DU REDDEDE CA. 1 MIA. MENNESKER <br><br> HD189733b's ekstreme vinde og glasregn gør landing umulig. At ignorere planeten og søge andre muligheder redder ressourcer og liv."
+                                },
                             ],
                             "image": "hd-189733b-ubeboelig.png",
                             "savedImage": "hd-189733b.png",
-                            "successAstronaut": "hd189733b-korrekt-astro.png",
-                            "failureAstronaut": "hd189733b-forkert-astro.png",
+                            "successAstronaut": "happy.png",
+                            "failureAstronaut": "pee.png",
                             "position": { "top": "50%", "left": "20%" },
                             "alt": "HD 189733b",
                             "size": 100,
@@ -843,41 +850,41 @@
                             "question": "Hvordan kan vi leve normalt, når én time på Chronos er syv år på Jorden?",
                             "choices": [
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Selvstændigt+Samfund",
-                                    "alt": "Acceptere tidsforskellen",
-                                    "correct": true,
-                                    "successText": "Rigtigt! At skabe et selvstændigt samfund på Chronos er den mest realistiske løsning."
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Korte+Ophold",
-                                    "alt": "Korte ophold",
+                                    "image": "chronos-l1.png",
+                                    "alt": "Kun lave korte ophold og hurtigt rejse væk",
                                     "correct": false,
-                                    "deathText": "Korte ophold forhindrede kolonisering, og du døde af isolation.",
-                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Isolation"
-                                },
-                                {
-                                    "image": "https://placehold.co/100x100/png?text=Flytte+Planeten",
-                                    "alt": "Flytte planeten",
-                                    "correct": false,
-                                    "deathText": "At flytte planeten var umuligt, og du døde af energimangel.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Det giver kun mening for forskning, men ikke for en beboelig koloni – man kan ikke skabe et rigtigt samfund, hvis alle rejser hurtigt væk.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+af+Energimangel"
                                 },
                                 {
-                                    "image": "https://placehold.co/100x100/png?text=Cryosøvn",
-                                    "alt": "Cryosøvn",
+                                    "image": "chronos-l2.png",
+                                    "alt": "Bygge kæmpe maskiner til at flytte planeten længere væk",
                                     "correct": false,
-                                    "deathText": "Cryosøvn-teknologien fejlede, og du døde i søvne.",
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Urealistisk – at ændre en planets bane kræver energi, vi slet ikke har.",
+                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Isolation"
+                                },
+                                {
+                                    "image": "Chronos-l3.png",
+                                    "alt": "Acceptere tidsforskellen og skabe et selvstændigt samfund",
+                                    "correct": true,
+                                    "successText": "DU REDDEDE CA. 1 MIA. MENNESKER! <br><br> Det mest realistiske er at leve normalt og skabe et selvstændigt liv på Chronos uden at sammenligne sig konstant med Jorden."
+                                },
+                                {
+                                    "image": "chronos-l4.png",
+                                    "alt": "Sætte mennesker i cryosøvn for at springe frem i tid",
+                                    "correct": false,
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> En teoretisk ide, men teknologien findes slet ikke, og det gør ikke livet på planeten lettere i hverdagen.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Søvn"
                                 }
                             ],
                             "image": "chronos-ubeboelig.png",
                             "savedImage": "chronos.png",
-                            "successAstronaut": "chronos-korrekt-astro.png",
-                            "failureAstronaut": "chronos-forkert-astro.png",
+                            "successAstronaut": "dab.png",
+                            "failureAstronaut": "Space Pics-20251003T095700Z-1-001/Space Pics/rock.png",
                             "position": { "top": "30%", "left": "40%" },
                             "alt": "Chronos",
                             "size": 200,
-                            "rocketImage": "astroman-travel.png",
+                            "rocketImage": "alien2.png",
                             "startPos": {left: "50%", top: "0%"},
                             "endPos": {left: "50%", top: "100%"}
                         },
@@ -899,17 +906,37 @@
         let attemptedPlanets = new Set();
         let currentRoom = 1;
         let lastFocusedElement;
+        let touchStartX = 0, touchStartY = 0; // For parallax velocity
+        let animationId; // For throttling
 
         function init() {
             loadProgress();
             createRooms();
             showRoom(currentRoom);
-            initParallax();
+            initParallaxTouch(); // Updated for touch
             initStarfield();
             setupResetButton();
             setupStartButton();
             document.getElementById('museum').style.display = 'none';
             document.getElementById('front-page').style.display = 'flex';
+            // Swipe to close modals
+            document.addEventListener('touchstart', handleModalSwipeStart, { passive: true });
+            document.addEventListener('touchmove', handleModalSwipeMove, { passive: false });
+        }
+
+        // Modal swipe close (downward swipe)
+        function handleModalSwipeStart(e) {
+            if (document.getElementById('modal').classList.contains('active')) {
+                touchStartY = e.touches[0].clientY;
+            }
+        }
+        function handleModalSwipeMove(e) {
+            if (!document.getElementById('modal').classList.contains('active')) return;
+            const deltaY = e.touches[0].clientY - touchStartY;
+            if (deltaY > 100) { // Swipe down >100px
+                closeModal();
+                e.preventDefault();
+            }
         }
 
         function loadProgress() {
@@ -947,15 +974,19 @@
                 resetGame();
                 returnToFrontPage();
             });
-            resetBtn.addEventListener('mousedown', () => {
-                resetBtn.classList.add('active');
-                setTimeout(() => resetBtn.classList.remove('active'), 200);
-            });
+            // Touch feedback
+            resetBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                resetBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => resetBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             resetBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
-                    resetBtn.classList.add('active');
+                    e.preventDefault();
+                    resetBtn.classList.add('pulse');
                     setTimeout(() => {
-                        resetBtn.classList.remove('active');
+                        resetBtn.classList.remove('pulse');
                         resetGame();
                         returnToFrontPage();
                     }, 200);
@@ -966,8 +997,17 @@
         function setupStartButton() {
             const startBtn = document.getElementById('start-btn');
             startBtn.addEventListener('click', startMission);
+            startBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => startBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             startBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') startMission();
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    startMission();
+                }
             });
         }
 
@@ -997,6 +1037,13 @@
             okBtn.textContent = 'OK';
             okBtn.classList.add('cartoon-btn', 'return-btn');
             okBtn.addEventListener('click', closeModal);
+            // Touch for OK btn
+            okBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                okBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => okBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             okBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeModal();
             });
@@ -1063,6 +1110,13 @@
                         }
                         if (!attemptedPlanets.has(el.id)) {
                             img.addEventListener('click', () => showQuiz(el));
+                            // Touch feedback for planets
+                            img.addEventListener('touchstart', (e) => {
+                                e.preventDefault();
+                                if (navigator.vibrate) navigator.vibrate(30);
+                                img.classList.add('touch-active');
+                                setTimeout(() => img.classList.remove('touch-active'), 300);
+                            }, { passive: false });
                             img.addEventListener('keydown', (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') showQuiz(el);
                             });
@@ -1072,6 +1126,13 @@
                     } else if (el.type === 'blackhole') {
                         label.textContent = el.alt || 'Sort hul';
                         img.addEventListener('click', () => travelThroughBlackhole(el));
+                        // Touch for blackholes
+                        img.addEventListener('touchstart', (e) => {
+                            e.preventDefault();
+                            if (navigator.vibrate) navigator.vibrate(50);
+                            img.classList.add('touch-active');
+                            setTimeout(() => img.classList.remove('touch-active'), 300);
+                        }, { passive: false });
                         img.addEventListener('keydown', (e) => {
                             if (e.key === 'Enter' || e.key === ' ') travelThroughBlackhole(el);
                         });
@@ -1114,6 +1175,8 @@
                     circle.classList.add('failed');
                 }
             });
+            // ARIA live for accessibility
+            savedCountElement.setAttribute('aria-live', 'polite');
         }
 
         function showQuiz(planet) {
@@ -1130,6 +1193,13 @@
             tilbageBtn.role = 'button';
             tilbageBtn.ariaLabel = 'Tilbage til planeter';
             tilbageBtn.addEventListener('click', closeModal);
+            // Touch for tilbage
+            tilbageBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                tilbageBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => tilbageBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             tilbageBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeModal();
             });
@@ -1146,6 +1216,27 @@
             planetImg.loading = 'lazy';
             planetImg.classList.add('spinning-planet');
             planetImg.style.width = `${(planet.size || 100) * 3.5}px`;
+            // Touch for spinning planet
+            let spinDir = 1;
+            let baseDuration = 10;
+            planetImg.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                spinDir *= -1;
+                planetImg.style.animationDirection = spinDir > 0 ? 'normal' : 'reverse';
+                setTimeout(() => {
+                    planetImg.style.animationDirection = 'normal';
+                }, 2000);
+                if (navigator.vibrate) navigator.vibrate(30);
+            }, { passive: false });
+            planetImg.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const deltaX = e.touches[0].clientX - touchStartX;
+                const speed = Math.abs(deltaX) / 100;
+                if (speed > 0.5) {
+                    planetImg.classList.add('fast');
+                    setTimeout(() => planetImg.classList.remove('fast'), 500);
+                }
+            }, { passive: false });
             centerDiv.appendChild(planetImg);
             
             const leftDiv = document.createElement('div');
@@ -1168,6 +1259,13 @@
             readMoreBtn.role = 'button';
             readMoreBtn.ariaLabel = `Læs mere om ${planet.name}`;
             readMoreBtn.addEventListener('click', () => showExtendedLore(planet));
+            // Touch for read more
+            readMoreBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                readMoreBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => readMoreBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             readMoreBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') showExtendedLore(planet);
             });
@@ -1190,6 +1288,26 @@
                 choiceLabel.textContent = choice.alt;
                 choiceLabel.classList.add('image-label');
                 choiceImg.addEventListener('click', () => handleChoice(planet, choice));
+                // Touch for choices: ripple + drag trail
+                choiceImg.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    choiceDiv.classList.add('touch-active');
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    setTimeout(() => choiceDiv.classList.remove('touch-active'), 500);
+                }, { passive: false });
+                choiceImg.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    // Drag trail: glow nearby choices
+                    document.querySelectorAll('.choice').forEach(ch => ch.classList.remove('glow-trail'));
+                    const touch = e.touches[0];
+                    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+                    if (el && el.closest('.choice')) {
+                        el.closest('.choice').classList.add('glow-trail');
+                    }
+                }, { passive: false });
+                choiceImg.addEventListener('touchend', () => {
+                    document.querySelectorAll('.choice').forEach(ch => ch.classList.remove('glow-trail'));
+                });
                 choiceImg.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') handleChoice(planet, choice);
                 });
@@ -1197,6 +1315,10 @@
                 choiceDiv.appendChild(choiceLabel);
                 choicesContainer.appendChild(choiceDiv);
             });
+            // Add CSS for glow-trail
+            const style = document.createElement('style');
+            style.textContent = '.glow-trail { filter: drop-shadow(0 0 5px #FFFFFF); }';
+            document.head.appendChild(style);
             
             quizContainer.appendChild(leftDiv);
             quizContainer.appendChild(centerDiv);
@@ -1245,6 +1367,13 @@
             closeBtn.role = 'button';
             closeBtn.ariaLabel = 'Luk detaljer om planeten';
             closeBtn.addEventListener('click', () => showQuiz(planet));
+            // Touch for close
+            closeBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                closeBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => closeBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             closeBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
             });
@@ -1329,6 +1458,13 @@
                 closeModal();
                 checkForEnd();
             });
+            // Touch for next
+            nextBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                nextBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => nextBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             nextBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1377,6 +1513,13 @@
                 closeModal();
                 checkForEnd();
             });
+            // Touch for next
+            nextBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                nextBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => nextBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             nextBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1430,6 +1573,13 @@
                 resetGame();
                 returnToFrontPage();
             });
+            // Touch for restart
+            restartBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                restartBtn.classList.add('pulse');
+                if (navigator.vibrate) navigator.vibrate(50);
+                setTimeout(() => restartBtn.classList.remove('pulse'), 500);
+            }, { passive: false });
             restartBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1488,15 +1638,56 @@
             first.focus();
         }
 
-        function initParallax() {
-            document.addEventListener('mousemove', (e) => {
+        // Touch-based parallax: Drag finger to pull elements
+        function initParallaxTouch() {
+            let lastX = 0, lastY = 0;
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                lastX = touchStartX;
+                lastY = touchStartY;
+                // Pulse all elements on touchstart
+                document.querySelectorAll('.element-container').forEach(el => {
+                    el.style.transform = 'scale(1.05)';
+                    el.classList.add('pulse-glow'); // Reuse animation
+                    setTimeout(() => {
+                        el.classList.remove('pulse-glow');
+                    }, 300);
+                });
+            }, { passive: true });
+
+            function updateParallax(clientX, clientY) {
+                const deltaX = clientX - lastX;
+                const deltaY = clientY - lastY;
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
                 document.querySelectorAll('.element-container').forEach(el => {
                     const depth = parseFloat(el.dataset.depth);
-                    const moveX = (e.clientX - window.innerWidth / 2) / depth;
-                    const moveY = (e.clientY - window.innerHeight / 2) / depth;
-                    el.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
+                    const moveX = (clientX - centerX) * (deltaX / 50) / depth; // Inertia from delta
+                    const moveY = (clientY - centerY) * (deltaY / 50) / depth;
+                    const currentTransform = el.style.transform || 'translate(0px, 0px)';
+                    const matrix = new DOMMatrixReadOnly(currentTransform);
+                    el.style.transform = `translate(${matrix.m41 + moveX}px, ${matrix.m42 + moveY}px)`;
                 });
-            });
+                lastX = clientX;
+                lastY = clientY;
+            }
+
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault(); // Prevent scroll
+                if (animationId) cancelAnimationFrame(animationId);
+                animationId = requestAnimationFrame(() => {
+                    updateParallax(e.touches[0].clientX, e.touches[0].clientY);
+                });
+            }, { passive: false });
+
+            document.addEventListener('touchend', () => {
+                // Drift back to origin
+                document.querySelectorAll('.element-container').forEach(el => {
+                    el.style.transform = 'translate(0px, 0px)';
+                });
+                if (animationId) cancelAnimationFrame(animationId);
+            }, { passive: true });
         }
 
         function initStarfield() {
