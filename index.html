@@ -12,7 +12,7 @@
             background: #000000;
             color: #FFFFFF;
             font-family: 'Roboto', sans-serif;
-            touch-action: manipulation; /* Faster touch response, no zoom/delay */
+            touch-action: manipulation; /* Faster taps, no delay */
         }
         h1, h2 {
             color: #9ED24F;
@@ -74,7 +74,6 @@
             text-transform: uppercase;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             box-sizing: border-box;
-            /* Removed :hover; now touch-driven */
         }
         .cartoon-btn:active {
             transform: translateY(2px) scale(0.95);
@@ -83,10 +82,9 @@
                 0 4px 0 #FC814A,
                 0 5px 10px rgba(0, 0, 0, 0.3);
             transition: transform 0.1s ease, box-shadow 0.1s ease;
-            background-color: #E06B38; /* Deeper press color */
+            background-color: #E06B38;
         }
-        .cartoon-btn.pulse { /* Touchstart ring animation */
-            position: relative;
+        .cartoon-btn.pulse {
             animation: orbital-ring 0.5s ease-out;
         }
         @keyframes orbital-ring {
@@ -125,7 +123,7 @@
             left: 10px;
             padding: 10px 20px;
             font-size: 1.2em;
-            border:  1px solid #000000;
+            border: 1px solid #000000;
             z-index: 25;
         }
         #museum {
@@ -152,27 +150,18 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 1s ease-out; /* For drift back after touch */
+            transition: transform 0.8s ease-out; /* For snap-back */
         }
         .element {
             border-radius: 50%;
             pointer-events: auto;
             transition: transform 0.3s ease, filter 0.3s ease;
+            touch-action: none; /* Prevent scroll during drag */
         }
-        /* Removed :hover; touchstart adds classes */
-        .planet.touch-active {
-            transform: scale(1.5);
-            filter: drop-shadow(0 0 10px #FFFFFF) brightness(1.2);
-            animation: pulse-glow 0.3s ease-in-out;
-        }
-        .blackhole.touch-active {
-            transform: scale(2);
-            filter: drop-shadow(0 0 10px #FFFFFF);
-            animation: pulse-glow 0.3s ease-in-out;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { filter: drop-shadow(0 0 5px #FFFFFF); }
-            50% { filter: drop-shadow(0 0 15px #FFFFFF); }
+        .planet.dragging {
+            transform: scale(1.2) !important; /* Visual drag feedback */
+            filter: drop-shadow(0 0 15px #9ED24F);
+            z-index: 5;
         }
         .saved {
             filter: brightness(1.2);
@@ -318,7 +307,9 @@
             pointer-events: auto;
             width: 100%;
         }
-        /* Removed :hover; touchstart adds ripple */
+        .choice:active {
+            transform: scale(1.1);
+        }
         .choice.touch-active::before {
             content: '';
             position: absolute;
@@ -349,9 +340,6 @@
         }
         .choice:nth-child(4) {
             background: #9ED24F;
-        }
-        .choice:active {
-            transform: scale(1.1);
         }
         .result-container {
             display: flex;
@@ -480,10 +468,6 @@
             border-radius: 50%;
             transition: animation-duration 0.3s ease;
         }
-        /* Removed :hover pause; touch changes speed/dir */
-        .spinning-planet.reverse {
-            animation-direction: reverse;
-        }
         .spinning-planet.fast {
             animation-duration: 2s;
         }
@@ -563,7 +547,7 @@
             }
             .choice {
                 width: 140px;
-                padding: 15px; /* Larger touch target */
+                padding: 20px; /* Larger touch target */
             }
             .panel {
                 padding: 10px;
@@ -603,8 +587,7 @@
             .end-scene p {
                 font-size: 1em;
             }
-            /* Mobile: Reduce animation intensity for perf */
-            .touch-active { animation-duration: 0.2s !important; }
+            .dragging { animation-duration: 0.5s !important; } /* Lighter drag anim on mobile */
         }
     </style>
 </head>
@@ -906,37 +889,18 @@
         let attemptedPlanets = new Set();
         let currentRoom = 1;
         let lastFocusedElement;
-        let touchStartX = 0, touchStartY = 0; // For parallax velocity
-        let animationId; // For throttling
+        let draggedPlanet = null; // Track current drag
+        let animationId;
 
         function init() {
             loadProgress();
             createRooms();
             showRoom(currentRoom);
-            initParallaxTouch(); // Updated for touch
             initStarfield();
             setupResetButton();
             setupStartButton();
             document.getElementById('museum').style.display = 'none';
             document.getElementById('front-page').style.display = 'flex';
-            // Swipe to close modals
-            document.addEventListener('touchstart', handleModalSwipeStart, { passive: true });
-            document.addEventListener('touchmove', handleModalSwipeMove, { passive: false });
-        }
-
-        // Modal swipe close (downward swipe)
-        function handleModalSwipeStart(e) {
-            if (document.getElementById('modal').classList.contains('active')) {
-                touchStartY = e.touches[0].clientY;
-            }
-        }
-        function handleModalSwipeMove(e) {
-            if (!document.getElementById('modal').classList.contains('active')) return;
-            const deltaY = e.touches[0].clientY - touchStartY;
-            if (deltaY > 100) { // Swipe down >100px
-                closeModal();
-                e.preventDefault();
-            }
         }
 
         function loadProgress() {
@@ -974,22 +938,17 @@
                 resetGame();
                 returnToFrontPage();
             });
-            // Touch feedback
-            resetBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            // Touch feedback only (no preventDefault)
+            resetBtn.addEventListener('touchstart', () => {
                 resetBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => resetBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             resetBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    resetBtn.classList.add('pulse');
-                    setTimeout(() => {
-                        resetBtn.classList.remove('pulse');
-                        resetGame();
-                        returnToFrontPage();
-                    }, 200);
+                    resetGame();
+                    returnToFrontPage();
                 }
             });
         }
@@ -997,12 +956,11 @@
         function setupStartButton() {
             const startBtn = document.getElementById('start-btn');
             startBtn.addEventListener('click', startMission);
-            startBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            startBtn.addEventListener('touchstart', () => {
                 startBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => startBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             startBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -1037,13 +995,11 @@
             okBtn.textContent = 'OK';
             okBtn.classList.add('cartoon-btn', 'return-btn');
             okBtn.addEventListener('click', closeModal);
-            // Touch for OK btn
-            okBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            okBtn.addEventListener('touchstart', () => {
                 okBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => okBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             okBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeModal();
             });
@@ -1072,7 +1028,7 @@
 
         function createRooms() {
             const roomsContainer = document.getElementById('rooms');
-            roomsContainer.innerHTML = ''; // Clear existing rooms
+            roomsContainer.innerHTML = '';
             data.rooms.forEach(room => {
                 const roomDiv = document.createElement('div');
                 roomDiv.id = `room-${room.id}`;
@@ -1083,7 +1039,8 @@
                     container.style.position = 'absolute';
                     container.style.top = el.position.top;
                     container.style.left = el.position.left;
-                    container.dataset.depth = Math.random() * 10 + 5;
+                    container.dataset.originalTop = el.position.top;
+                    container.dataset.originalLeft = el.position.left;
                     const img = document.createElement('img');
                     if (el.type === 'planet') {
                         img.src = !attemptedPlanets.has(el.id) || savedPlanets.has(el.id) ? el.savedImage : el.image;
@@ -1110,13 +1067,8 @@
                         }
                         if (!attemptedPlanets.has(el.id)) {
                             img.addEventListener('click', () => showQuiz(el));
-                            // Touch feedback for planets
-                            img.addEventListener('touchstart', (e) => {
-                                e.preventDefault();
-                                if (navigator.vibrate) navigator.vibrate(30);
-                                img.classList.add('touch-active');
-                                setTimeout(() => img.classList.remove('touch-active'), 300);
-                            }, { passive: false });
+                            // Planet drag setup
+                            setupPlanetDrag(img, container);
                             img.addEventListener('keydown', (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') showQuiz(el);
                             });
@@ -1126,13 +1078,9 @@
                     } else if (el.type === 'blackhole') {
                         label.textContent = el.alt || 'Sort hul';
                         img.addEventListener('click', () => travelThroughBlackhole(el));
-                        // Touch for blackholes
-                        img.addEventListener('touchstart', (e) => {
-                            e.preventDefault();
+                        img.addEventListener('touchstart', () => {
                             if (navigator.vibrate) navigator.vibrate(50);
-                            img.classList.add('touch-active');
-                            setTimeout(() => img.classList.remove('touch-active'), 300);
-                        }, { passive: false });
+                        });
                         img.addEventListener('keydown', (e) => {
                             if (e.key === 'Enter' || e.key === ' ') travelThroughBlackhole(el);
                         });
@@ -1142,6 +1090,55 @@
                     roomDiv.appendChild(container);
                 });
                 roomsContainer.appendChild(roomDiv);
+            });
+        }
+
+        // Individual planet drag
+        function setupPlanetDrag(img, container) {
+            let startX, startY, initialLeft, initialTop;
+            img.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                initialLeft = container.dataset.originalLeft;
+                initialTop = container.dataset.originalTop;
+                draggedPlanet = container;
+                container.style.transition = 'none'; // Disable snap during drag
+                img.classList.add('dragging');
+                if (navigator.vibrate) navigator.vibrate(30);
+            });
+            img.addEventListener('touchmove', (e) => {
+                if (!draggedPlanet) return;
+                e.preventDefault(); // Only prevent on active drag
+                const touch = e.touches[0];
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                // Clamp to screen bounds
+                const newLeft = Math.max(0, Math.min(100, parseFloat(initialLeft) + (deltaX / window.innerWidth * 100)));
+                const newTop = Math.max(0, Math.min(100, parseFloat(initialTop) + (deltaY / window.innerHeight * 100)));
+                draggedPlanet.style.left = `${newLeft}%`;
+                draggedPlanet.style.top = `${newTop}%`;
+                if (animationId) cancelAnimationFrame(animationId);
+                animationId = requestAnimationFrame(() => {}); // Throttle
+            });
+            img.addEventListener('touchend', (e) => {
+                if (!draggedPlanet || Math.abs(e.changedTouches[0].clientX - startX) < 10) {
+                    // Short touch = tap, trigger quiz if not dragged
+                    if (!attemptedPlanets.has(img.parentElement.querySelector('img').alt.split(' ')[1].toLowerCase())) {
+                        showQuiz(data.rooms[currentRoom - 1].elements.find(el => el.alt === img.alt));
+                    }
+                }
+                if (draggedPlanet) {
+                    // Snap back
+                    draggedPlanet.style.left = initialLeft;
+                    draggedPlanet.style.top = initialTop;
+                    draggedPlanet.style.transition = 'transform 0.8s ease-out';
+                    img.classList.remove('dragging');
+                    setTimeout(() => {
+                        draggedPlanet.style.transition = '';
+                    }, 800);
+                    draggedPlanet = null;
+                }
             });
         }
 
@@ -1175,7 +1172,6 @@
                     circle.classList.add('failed');
                 }
             });
-            // ARIA live for accessibility
             savedCountElement.setAttribute('aria-live', 'polite');
         }
 
@@ -1193,13 +1189,11 @@
             tilbageBtn.role = 'button';
             tilbageBtn.ariaLabel = 'Tilbage til planeter';
             tilbageBtn.addEventListener('click', closeModal);
-            // Touch for tilbage
-            tilbageBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            tilbageBtn.addEventListener('touchstart', () => {
                 tilbageBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => tilbageBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             tilbageBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') closeModal();
             });
@@ -1216,27 +1210,15 @@
             planetImg.loading = 'lazy';
             planetImg.classList.add('spinning-planet');
             planetImg.style.width = `${(planet.size || 100) * 3.5}px`;
-            // Touch for spinning planet
-            let spinDir = 1;
-            let baseDuration = 10;
-            planetImg.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                spinDir *= -1;
-                planetImg.style.animationDirection = spinDir > 0 ? 'normal' : 'reverse';
-                setTimeout(() => {
-                    planetImg.style.animationDirection = 'normal';
-                }, 2000);
-                if (navigator.vibrate) navigator.vibrate(30);
-            }, { passive: false });
+            // Simplified touch: speed on move
             planetImg.addEventListener('touchmove', (e) => {
-                e.preventDefault();
-                const deltaX = e.touches[0].clientX - touchStartX;
-                const speed = Math.abs(deltaX) / 100;
+                const deltaX = e.touches[0].clientX - e.touches[0].clientX; // Reuse for speed
+                const speed = Math.abs(e.touches[0].clientX - startX) / 100; // Approx
                 if (speed > 0.5) {
                     planetImg.classList.add('fast');
                     setTimeout(() => planetImg.classList.remove('fast'), 500);
                 }
-            }, { passive: false });
+            });
             centerDiv.appendChild(planetImg);
             
             const leftDiv = document.createElement('div');
@@ -1259,13 +1241,11 @@
             readMoreBtn.role = 'button';
             readMoreBtn.ariaLabel = `Læs mere om ${planet.name}`;
             readMoreBtn.addEventListener('click', () => showExtendedLore(planet));
-            // Touch for read more
-            readMoreBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            readMoreBtn.addEventListener('touchstart', () => {
                 readMoreBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => readMoreBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             readMoreBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') showExtendedLore(planet);
             });
@@ -1288,25 +1268,10 @@
                 choiceLabel.textContent = choice.alt;
                 choiceLabel.classList.add('image-label');
                 choiceImg.addEventListener('click', () => handleChoice(planet, choice));
-                // Touch for choices: ripple + drag trail
-                choiceImg.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
+                choiceImg.addEventListener('touchstart', () => {
                     choiceDiv.classList.add('touch-active');
                     if (navigator.vibrate) navigator.vibrate(30);
                     setTimeout(() => choiceDiv.classList.remove('touch-active'), 500);
-                }, { passive: false });
-                choiceImg.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    // Drag trail: glow nearby choices
-                    document.querySelectorAll('.choice').forEach(ch => ch.classList.remove('glow-trail'));
-                    const touch = e.touches[0];
-                    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-                    if (el && el.closest('.choice')) {
-                        el.closest('.choice').classList.add('glow-trail');
-                    }
-                }, { passive: false });
-                choiceImg.addEventListener('touchend', () => {
-                    document.querySelectorAll('.choice').forEach(ch => ch.classList.remove('glow-trail'));
                 });
                 choiceImg.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') handleChoice(planet, choice);
@@ -1315,10 +1280,6 @@
                 choiceDiv.appendChild(choiceLabel);
                 choicesContainer.appendChild(choiceDiv);
             });
-            // Add CSS for glow-trail
-            const style = document.createElement('style');
-            style.textContent = '.glow-trail { filter: drop-shadow(0 0 5px #FFFFFF); }';
-            document.head.appendChild(style);
             
             quizContainer.appendChild(leftDiv);
             quizContainer.appendChild(centerDiv);
@@ -1367,13 +1328,11 @@
             closeBtn.role = 'button';
             closeBtn.ariaLabel = 'Luk detaljer om planeten';
             closeBtn.addEventListener('click', () => showQuiz(planet));
-            // Touch for close
-            closeBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            closeBtn.addEventListener('touchstart', () => {
                 closeBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => closeBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             closeBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
             });
@@ -1458,13 +1417,11 @@
                 closeModal();
                 checkForEnd();
             });
-            // Touch for next
-            nextBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            nextBtn.addEventListener('touchstart', () => {
                 nextBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => nextBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             nextBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1513,13 +1470,11 @@
                 closeModal();
                 checkForEnd();
             });
-            // Touch for next
-            nextBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            nextBtn.addEventListener('touchstart', () => {
                 nextBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => nextBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             nextBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1573,13 +1528,11 @@
                 resetGame();
                 returnToFrontPage();
             });
-            // Touch for restart
-            restartBtn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
+            restartBtn.addEventListener('touchstart', () => {
                 restartBtn.classList.add('pulse');
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => restartBtn.classList.remove('pulse'), 500);
-            }, { passive: false });
+            });
             restartBtn.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     closeModal();
@@ -1636,58 +1589,6 @@
                 }
             });
             first.focus();
-        }
-
-        // Touch-based parallax: Drag finger to pull elements
-        function initParallaxTouch() {
-            let lastX = 0, lastY = 0;
-            document.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-                lastX = touchStartX;
-                lastY = touchStartY;
-                // Pulse all elements on touchstart
-                document.querySelectorAll('.element-container').forEach(el => {
-                    el.style.transform = 'scale(1.05)';
-                    el.classList.add('pulse-glow'); // Reuse animation
-                    setTimeout(() => {
-                        el.classList.remove('pulse-glow');
-                    }, 300);
-                });
-            }, { passive: true });
-
-            function updateParallax(clientX, clientY) {
-                const deltaX = clientX - lastX;
-                const deltaY = clientY - lastY;
-                const centerX = window.innerWidth / 2;
-                const centerY = window.innerHeight / 2;
-                document.querySelectorAll('.element-container').forEach(el => {
-                    const depth = parseFloat(el.dataset.depth);
-                    const moveX = (clientX - centerX) * (deltaX / 50) / depth; // Inertia from delta
-                    const moveY = (clientY - centerY) * (deltaY / 50) / depth;
-                    const currentTransform = el.style.transform || 'translate(0px, 0px)';
-                    const matrix = new DOMMatrixReadOnly(currentTransform);
-                    el.style.transform = `translate(${matrix.m41 + moveX}px, ${matrix.m42 + moveY}px)`;
-                });
-                lastX = clientX;
-                lastY = clientY;
-            }
-
-            document.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // Prevent scroll
-                if (animationId) cancelAnimationFrame(animationId);
-                animationId = requestAnimationFrame(() => {
-                    updateParallax(e.touches[0].clientX, e.touches[0].clientY);
-                });
-            }, { passive: false });
-
-            document.addEventListener('touchend', () => {
-                // Drift back to origin
-                document.querySelectorAll('.element-container').forEach(el => {
-                    el.style.transform = 'translate(0px, 0px)';
-                });
-                if (animationId) cancelAnimationFrame(animationId);
-            }, { passive: true });
         }
 
         function initStarfield() {
