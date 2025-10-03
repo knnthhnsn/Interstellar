@@ -150,7 +150,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.8s ease-out; /* For snap-back */
         }
         .element {
             border-radius: 50%;
@@ -302,10 +301,15 @@
             opacity: 0.9;
             position: relative;
             overflow: hidden;
+            justify-content: center; /* Center content vertically */
+            min-height: 120px; /* Ensure space for text */
         }
         .choice img {
             pointer-events: auto;
-            width: 100%;
+            width: 80px; /* Smaller images */
+            height: auto;
+            max-width: 80%;
+            margin-bottom: 8px; /* Space before text */
         }
         .choice:active {
             transform: scale(1.1);
@@ -328,6 +332,12 @@
                 height: 200px;
                 opacity: 0;
             }
+        }
+        .choice .image-label {
+            font-size: 0.9em; /* Slightly smaller text for fit, but readable */
+            line-height: 1.2;
+            text-align: center;
+            white-space: normal; /* Allow wrapping */
         }
         .choice:nth-child(1) {
             background: #40798C;
@@ -547,7 +557,15 @@
             }
             .choice {
                 width: 140px;
-                padding: 20px; /* Larger touch target */
+                padding: 20px; /* Large touch target */
+                min-height: 100px; /* Space for text */
+            }
+            .choice img {
+                width: 60px; /* Even smaller on mobile */
+                max-width: 60%;
+            }
+            .choice .image-label {
+                font-size: 0.8em; /* Fit text on small screens */
             }
             .panel {
                 padding: 10px;
@@ -1093,17 +1111,17 @@
             });
         }
 
-        // Individual planet drag
+        // Individual planet drag (persistent position)
         function setupPlanetDrag(img, container) {
             let startX, startY, initialLeft, initialTop;
             img.addEventListener('touchstart', (e) => {
                 const touch = e.touches[0];
                 startX = touch.clientX;
                 startY = touch.clientY;
-                initialLeft = container.dataset.originalLeft;
-                initialTop = container.dataset.originalTop;
+                initialLeft = parseFloat(container.dataset.originalLeft);
+                initialTop = parseFloat(container.dataset.originalTop);
                 draggedPlanet = container;
-                container.style.transition = 'none'; // Disable snap during drag
+                container.style.transition = 'none'; // Disable any transition during drag
                 img.classList.add('dragging');
                 if (navigator.vibrate) navigator.vibrate(30);
             });
@@ -1113,9 +1131,9 @@
                 const touch = e.touches[0];
                 const deltaX = touch.clientX - startX;
                 const deltaY = touch.clientY - startY;
-                // Clamp to screen bounds
-                const newLeft = Math.max(0, Math.min(100, parseFloat(initialLeft) + (deltaX / window.innerWidth * 100)));
-                const newTop = Math.max(0, Math.min(100, parseFloat(initialTop) + (deltaY / window.innerHeight * 100)));
+                // Clamp to screen bounds (0-100%)
+                const newLeft = Math.max(0, Math.min(100, initialLeft + (deltaX / window.innerWidth * 100)));
+                const newTop = Math.max(0, Math.min(100, initialTop + (deltaY / window.innerHeight * 100)));
                 draggedPlanet.style.left = `${newLeft}%`;
                 draggedPlanet.style.top = `${newTop}%`;
                 if (animationId) cancelAnimationFrame(animationId);
@@ -1127,18 +1145,19 @@
                     if (!attemptedPlanets.has(img.parentElement.querySelector('img').alt.split(' ')[1].toLowerCase())) {
                         showQuiz(data.rooms[currentRoom - 1].elements.find(el => el.alt === img.alt));
                     }
-                }
-                if (draggedPlanet) {
-                    // Snap back
-                    draggedPlanet.style.left = initialLeft;
-                    draggedPlanet.style.top = initialTop;
-                    draggedPlanet.style.transition = 'transform 0.8s ease-out';
                     img.classList.remove('dragging');
-                    setTimeout(() => {
-                        draggedPlanet.style.transition = '';
-                    }, 800);
                     draggedPlanet = null;
+                    return;
                 }
+                // Persist new position: update dataset for future drags
+                const finalLeft = parseFloat(draggedPlanet.style.left) || initialLeft;
+                const finalTop = parseFloat(draggedPlanet.style.top) || initialTop;
+                draggedPlanet.dataset.originalLeft = finalLeft.toString();
+                draggedPlanet.dataset.originalTop = finalTop.toString();
+                // No snap-back: stay in place
+                img.classList.remove('dragging');
+                draggedPlanet.style.transition = ''; // Re-enable if needed
+                draggedPlanet = null;
             });
         }
 
