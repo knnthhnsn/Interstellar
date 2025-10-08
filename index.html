@@ -1,657 +1,811 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
+    <!-- Angiver tegnsæt til UTF-8 for at understøtte danske tegn som æ, ø, å -->
     <meta charset="UTF-8">
+    <!-- Sørger for responsiv visning på mobile enheder ved at tilpasse bredden til skærmen -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FLYGT FRA DEN DØENDE JORD</title>
+    <!-- Importerer eksterne fonte fra Google Fonts. Space Grotesk bruges til overskrifter for et futuristisk look, 
+         og Roboto til brødtekst for klar læsbarhed -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
     <style>
+        /* Generel styling for body */
         body {
-            margin: 0;
-            overflow: hidden;
-            background: #000000;
-            color: #FFFFFF;
-            font-family: 'Space Grotesk', sans-serif;
-            touch-action: manipulation; /* Faster taps, no delay */
+            margin: 0; /* Fjerner standardmargin for at udnytte hele skærmen */
+            overflow: hidden; /* Forhindrer scrolling, da spillet fylder hele viewporten */
+            background: #000000; /* Sort baggrund for at simulere rummet */
+            color: #FFFFFF; /* Hvid tekst for kontrast mod sort baggrund */
+            font-family: 'Space Grotesk', sans-serif; /* Standardfont for overskrifter og knapper */
+            touch-action: manipulation; /* Forbedrer touch-respons ved at fjerne forsinkelse på mobile enheder */
         }
+
+        /* Styling af overskrifter */
         h1, h2 {
-            color: #9ED24F;
-            text-transform: uppercase;
+            color: #9ED24F; /* Grøn farve for et sci-fi-udtryk, der matcher temaet */
+            text-transform: uppercase; /* Store bogstaver for dramatisk effekt */
         }
+
+        /* Styling af stjernefelt-canvas */
         #starfield {
-            position: absolute;
+            position: absolute; /* Placeres i baggrunden bag alt andet */
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
+            width: 100%; /* Fylde hele bredden */
+            height: 100%; /* Fylde hele højden */
+            z-index: -1; /* Bagest i lagene for at sikre, at andre elementer vises ovenpå */
         }
+
+        /* Styling af forsiden */
         #front-page {
-            position: fixed;
+            position: fixed; /* Fast position for at dække hele skærmen */
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100vw; /* 100% af viewportens bredde for fuld dækning */
+            height: 100vh; /* 100% af viewportens højde */
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            transition: opacity 1s ease;
-            opacity: 1;
+            flex-direction: column; /* Lodret opstilling af indhold */
+            justify-content: center; /* Centrerer indhold vertikalt */
+            align-items: center; /* Centrerer indhold horisontalt */
+            z-index: 30; /* Øverst i lagene, så forsiden dækker alt ved start */
+            transition: opacity 1s ease; /* Glidende overgang ved fade-in/fade-out */
+            opacity: 1; /* Fuldt synlig ved start */
         }
+
+        /* Fade-out effekt for forsiden */
         #front-page.fade-out {
-            opacity: 0;
+            opacity: 0; /* Bliver usynlig ved overgang til spillet */
         }
+
+        /* Styling af overskrift på forsiden */
         #front-page h1 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 4em;
-            font-weight: 700;
-            text-align: center;
-            margin: 0;
+            font-family: 'Space Grotesk', sans-serif; /* Futuristisk font for temaet */
+            font-size: 4em; /* Stor skriftstørrelse for dramatisk effekt */
+            font-weight: 700; /* Fed skrift for vægt */
+            text-align: center; /* Centreret tekst */
+            margin: 0; /* Fjerner margin for kompakt layout */
         }
+
+        /* Styling af beskrivelse på forsiden */
         #front-page p {
-            font-size: 1.5em;
-            max-width: 600px;
-            text-align: center;
-            margin: 20px 0;
+            font-size: 1.5em; /* Læsbar størrelse for brødtekst */
+            max-width: 600px; /* Begrænser bredden for læsbarhed */
+            text-align: center; /* Centreret tekst */
+            margin: 20px 0; /* Afstand over og under for luftigt layout */
         }
+
+        /* Styling af cartoon-knapper */
         .cartoon-btn {
-            background-color: #FC814A;
-            color: #FFFFFF;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.5em;
-            font-weight: bold;
-            padding: 15px 40px;
-            border: 1px solid #000000;
-            border-radius: 12px;
+            background-color: #FC814A; /* Orange farve for iøjnefaldende knapper */
+            color: #FFFFFF; /* Hvid tekst for kontrast */
+            font-family: 'Space Grotesk', sans-serif; /* Konsistent font */
+            font-size: 1.5em; /* Læsbar størrelse */
+            font-weight: bold; /* Fed tekst for vægt */
+            padding: 15px 40px; /* Polstring for behagelig størrelse */
+            border: 1px solid #000000; /* Sort kant for tegneserieeffekt */
+            border-radius: 12px; /* Afrundede hjørner for blødt look */
             box-shadow: 
-                0 1px 0 #000000,
-                0 6px 0 #FC814A,
-                0 10px 15px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            position: relative;
-            text-transform: uppercase;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-            box-sizing: border-box;
+                0 1px 0 #000000, /* Tynd sort skygge for tegneserieeffekt */
+                0 6px 0 #FC814A, /* Farvet skygge for 3D-effekt */
+                0 10px 15px rgba(0, 0, 0, 0.4); /* Blød skygge for dybde */
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* Glidende animation ved tryk */
+            position: relative; /* Relativ positionering for pseudo-elementer */
+            text-transform: uppercase; /* Store bogstaver for konsistens */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3); /* Let tekstskygge for dybde */
+            box-sizing: border-box; /* Sikrer, at padding ikke øger knappens størrelse */
         }
+
+        /* Aktiv tilstand for knapper (ved tryk) */
         .cartoon-btn:active {
-            transform: translateY(2px) scale(0.95);
+            transform: translateY(2px) scale(0.95); /* Flytter ned og formindsker for tryk-effekt */
             box-shadow: 
-                0 1px 0 #000000,
-                0 4px 0 #FC814A,
-                0 5px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-            background-color: #E06B38;
+                0 1px 0 #000000, /* Reduceret skygge for "trykket" look */
+                0 4px 0 #FC814A, /* Mindre farvet skygge */
+                0 5px 10px rgba(0, 0, 0, 0.3); /* Mindre diffus skygge */
+            transition: transform 0.1s ease, box-shadow 0.1s ease; /* Hurtigere overgang ved tryk */
+            background-color: #E06B38; /* Mørkere orange for feedback */
         }
+
+        /* Pulserende animation for touch-feedback */
         .cartoon-btn.pulse {
-            animation: orbital-ring 0.5s ease-out;
+            animation: orbital-ring 0.5s ease-out; /* Animeret ring-effekt ved touch */
         }
+
         @keyframes orbital-ring {
-            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
-            100% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } /* Starter med ingen skygge */
+            100% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); } /* Udvides til gennemsigtig ring */
         }
+
+        /* Styling af reset-knappen */
         #reset-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            display: flex;
+            width: 80px; /* Fast bredde for cirkulær form */
+            height: 80px; /* Fast højde for cirkulær form */
+            border-radius: 50%; /* Gør knappen rund */
+            display: flex; /* Centrerer indhold */
             justify-content: center;
             align-items: center;
-            font-size: 14px;
-            padding: 0;
-            position: fixed;
+            font-size: 14px; /* Mindre tekst for at passe i cirkel */
+            padding: 0; /* Ingen polstring for præcis størrelse */
+            position: fixed; /* Fast position øverst */
             top: 10px;
-            left: 50%;
-            z-index: 10;
-            box-sizing: border-box;
+            left: 50%; /* Centreret horisontalt */
+            transform: translateX(-50%); /* Flytter tilbage for perfekt centrering */
+            z-index: 10; /* Over de fleste elementer, men under modal */
+            box-sizing: border-box; /* Forhindrer størrelsesfejl */
         }
+
+        /* Styling af tilbage-knap */
         .return-btn {
-            margin-top: 20px;
-            width: 200px;
-            padding: 10px;
-            font-size: 1.2em;
+            margin-top: 20px; /* Afstand fra indhold */
+            width: 200px; /* Fast bredde for konsistens */
+            padding: 10px; /* Mindre polstring end hovedknapper */
+            font-size: 1.2em; /* Lidt mindre tekst */
         }
+
+        /* Styling af læs mere-knap */
         .read-more-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1.2em;
+            margin-top: 20px; /* Afstand fra indhold */
+            padding: 10px 20px; /* Polstring for komfortabel størrelse */
+            font-size: 1.2em; /* Læsbar tekststørrelse */
         }
+
+        /* Styling af tilbage-knap i modal */
         .tilbage-btn {
-            position: fixed;
+            position: fixed; /* Fast position øverst til venstre */
             top: 10px;
             left: 10px;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            border: 1px solid #000000;
-            z-index: 25;
+            padding: 10px 20px; /* Komfortabel polstring */
+            font-size: 1.2em; /* Læsbar tekst */
+            border: 1px solid #000000; /* Sort kant for tegneserieeffekt */
+            z-index: 25; /* Over modal-indhold, men under valgmuligheder */
         }
+
+        /* Styling af museum (hovedspilområde) */
         #museum {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            transition: opacity 1s ease;
+            position: relative; /* Relativ positionering for børn */
+            width: 100vw; /* Fuld viewport-bredde */
+            height: 100vh; /* Fuld viewport-højde */
+            display: none; /* Skjult ved start, vises efter forside */
+            transition: opacity 1s ease; /* Glidende overgang ved visning */
         }
+
+        /* Styling af rum (forskellige galakser eller niveauer) */
         .room {
-            position: absolute;
+            position: absolute; /* Absolut position for at stable rum */
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            display: none;
+            width: 100%; /* Fuld bredde */
+            height: 100%; /* Fuld højde */
+            background-size: cover; /* Baggrundsbillede dækker hele området */
+            display: none; /* Skjult som standard */
         }
+
+        /* Viser aktivt rum */
         .room.active {
-            display: block;
+            display: block; /* Vises når aktiv */
         }
+
+        /* Container for planeter og sorte huller */
         .element-container {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            position: absolute; /* Absolut position for præcis placering */
+            display: flex; /* Fleksibel opstilling for billede og etiket */
+            flex-direction: column; /* Lodret opstilling */
+            align-items: center; /* Centrerer indhold horisontalt */
         }
+
+        /* Styling af planeter og sorte huller */
         .element {
-            border-radius: 50%;
-            pointer-events: auto;
-            transition: transform 0.3s ease, filter 0.3s ease;
-            touch-action: none; /* Prevent scroll during drag */
+            border-radius: 50%; /* Rund form for planeter/sorte huller */
+            pointer-events: auto; /* Gør elementet interaktivt */
+            transition: transform 0.3s ease, filter 0.3s ease; /* Glidende animation for bevægelse og effekter */
+            touch-action: none; /* Forhindrer scrolling under træk */
         }
+
+        /* Styling under træk af planeter */
         .planet.dragging {
-            transform: scale(1.2) !important; /* Visual drag feedback */
-            filter: drop-shadow(0 0 15px #9ED24F);
-            z-index: 5;
+            transform: scale(1.2) !important; /* Forstørrer planeten for visuel feedback */
+            filter: drop-shadow(0 0 15px #9ED24F); /* Grøn glød for sci-fi-effekt */
+            z-index: 5; /* Løfter planeten over andre elementer */
         }
+
+        /* Markerer reddede planeter */
         .saved {
-            filter: brightness(1.2);
+            filter: brightness(1.2); /* Øger lysstyrke for at markere succes */
         }
+
+        /* Deaktiverer interaktion for forsøgte planeter */
         .attempted {
-            pointer-events: none;
+            pointer-events: none; /* Forhindrer yderligere klik */
         }
+
+        /* Visuelt mærke for reddede planeter */
         .saved::after {
-            content: '';
-            position: absolute;
+            content: ''; /* Pseudo-element for ikon */
+            position: absolute; /* Placeres relativt til planeten */
             top: -10px;
             right: -10px;
-            width: 15%;
+            width: 15%; /* Relativ størrelse for skalering */
             height: 15%;
-            background: url('https://placehold.co/30x30/png?text=Beboelig') no-repeat;
-            background-size: cover;
+            background: url('https://placehold.co/30x30/png?text=Beboelig') no-repeat; /* Placeholder-ikon */
+            background-size: cover; /* Dækker hele området */
         }
+
+        /* Styling af etiketter under planeter */
         .image-label {
-            display: block;
-            color: #FFFFFF;
-            font-size: 12px;
-            text-align: center;
-            margin-top: 5px;
-            pointer-events: none;
+            display: block; /* Gør etiketten til en blok for centrering */
+            color: #FFFFFF; /* Hvid tekst for kontrast */
+            font-size: 12px; /* Lille størrelse for diskret visning */
+            text-align: center; /* Centreret tekst */
+            margin-top: 5px; /* Afstand fra billede */
+            pointer-events: none; /* Forhindrer interaktion med etiket */
         }
+
+        /* Styling af HUD (heads-up display) */
         #hud {
-            position: fixed;
+            position: fixed; /* Fast position øverst til højre */
             top: 10px;
             right: 10px;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            z-index: 10; /* Over rum, men under modal */
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            align-items: flex-end; /* Justerer til højre */
         }
+
+        /* Container for planet-cirkler (indikatorer) */
         .planet-circles {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+            display: flex; /* Vandret opstilling */
+            gap: 8px; /* Afstand mellem cirkler */
+            margin-bottom: 10px; /* Afstand til tæller */
         }
+
+        /* Styling af individuelle cirkler */
         .circle {
-            width: 20px;
+            width: 20px; /* Fast størrelse */
             height: 20px;
-            background-color: #777777;
-            border-radius: 50%;
+            background-color: #777777; /* Grå for inaktive planeter */
+            border-radius: 50%; /* Rund form */
         }
+
+        /* Markerer reddede planeter i HUD */
         .circle.filled {
-            background-color: #9ED24F;
+            background-color: #9ED24F; /* Grøn for succes */
         }
+
+        /* Markerer mislykkede forsøg i HUD */
         .circle.failed {
-            background-color: #FF6B6B;
+            background-color: #FF6B6B; /* Rød for fiasko */
         }
+
+        /* Styling af tæller for reddede planeter og mennesker */
         #saved-count {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            color: #FFFFFF;
-            font-size: 20px;
-            font-family: 'Space Grotesk', sans-serif;
-            text-align: right;
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            align-items: flex-end; /* Justerer til højre */
+            color: #FFFFFF; /* Hvid tekst */
+            font-size: 20px; /* Læsbar størrelse */
+            font-family: 'Space Grotesk', sans-serif; /* Konsistent font */
+            text-align: right; /* Højrejusteret tekst */
         }
+
         #saved-count span {
-            margin-bottom: 5px;
+            margin-bottom: 5px; /* Afstand mellem linjer */
         }
+
+        /* Styling af modal (pop-up vindue) */
         #modal {
-            position: fixed;
+            position: fixed; /* Fast position for at dække skærmen */
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            transition: opacity 0.5s ease;
+            width: 100vw; /* Fuld bredde */
+            height: 100vh; /* Fuld højde */
+            background: rgba(0, 0, 0, 0.8); /* Halvgennemsigtig sort baggrund */
+            display: none; /* Skjult som standard */
+            justify-content: center; /* Centrerer indhold horisontalt */
+            align-items: center; /* Centrerer indhold vertikalt */
+            z-index: 20; /* Over museum, men under valgmuligheder */
+            transition: opacity 0.5s ease; /* Glidende overgang */
         }
+
+        /* Viser modal når aktiv */
         #modal.active {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            justify-content: center; /* Centrerer vertikalt */
+            align-items: center; /* Centrerer horisontalt */
         }
+
+        /* Styling af paneler i modal */
         .panel {
-            background: #000000;
-            padding: 20px;
-            text-align: center;
-            max-width: 600px;
-            border-radius: 10px;
-            border: 1px solid #FFFFFF;
-            color: #FFFFFF;
-            font-family: 'Roboto', sans-serif;
+            background: #000000; /* Sort baggrund for kontrast */
+            padding: 20px; /* Polstring for luftigt layout */
+            text-align: center; /* Centreret tekst */
+            max-width: 600px; /* Begrænser bredden for læsbarhed */
+            border-radius: 10px; /* Afrundede hjørner */
+            border: 1px solid #FFFFFF; /* Hvid kant for definition */
+            color: #FFFFFF; /* Hvid tekst */
+            font-family: 'Roboto', sans-serif; /* Læsbar font for brødtekst */
         }
+
         .panel h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 3em;
+            font-family: 'Space Grotesk', sans-serif; /* Futuristisk font */
+            font-size: 3em; /* Stor overskrift */
         }
-         .panel p {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.5em;
+
+        .panel p {
+            font-family: 'Space Grotesk', sans-serif; /* Konsistent font */
+            font-size: 1.5em; /* Læsbar tekststørrelse */
         }
+
+        /* Styling af slutskærm */
         .end-scene {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            justify-content: center; /* Centrerer vertikalt */
+            align-items: center; /* Centrerer horisontalt */
+            min-height: 100vh; /* Fuld højde */
+            max-width: 600px; /* Begrænset bredde */
+            margin: 0 auto; /* Centrerer horisontalt */
+            padding: 20px; /* Polstring for layout */
+            text-align: center; /* Centreret tekst */
         }
+
         .end-scene img {
-            max-width: 100%;
-            height: auto;
-            margin: 20px 0;
+            max-width: 100%; /* Skalerer til container */
+            height: auto; /* Bevarer proportioner */
+            margin: 20px 0; /* Afstand over og under */
         }
+
         .end-scene p {
-            font-size: 1.2em;
-            margin: 20px 0;
+            font-size: 1.2em; /* Læsbar tekst */
+            margin: 20px 0; /* Afstand for layout */
         }
+
+        /* Container for valgmuligheder i quiz */
         .choices-container {
-            position: fixed;
-            bottom: 20px;
+            position: fixed; /* Fast position i bunden */
+            bottom: 20px; /* Afstand fra bunden */
             left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-evenly;
-            gap: 40px;
-            flex-wrap: wrap;
-            z-index: 25;
+            width: 100%; /* Fuld bredde */
+            display: flex; /* Vandret opstilling */
+            justify-content: space-evenly; /* Jævn fordeling */
+            gap: 40px; /* Afstand mellem valg */
+            flex-wrap: wrap; /* Tillader ombrydning på små skærme */
+            z-index: 25; /* Over modal */
         }
+
+        /* Styling af valgmuligheder */
         .choice {
-            transition: transform 0.2s;
-            width: 250px;
-            height: 250px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-            border-radius: 5px;
-            color: #0F0F20;
-            pointer-events: auto;
-            opacity: 0.9;
-            position: relative;
-            overflow: hidden;
-            justify-content: center; /* Center content vertically */
-            min-height: 120px; /* Ensure space for text */
+            transition: transform 0.2s; /* Glidende animation ved tryk */
+            width: 250px; /* Fast bredde */
+            height: 250px; /* Fast højde */
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            align-items: center; /* Centrerer indhold */
+            padding: 15px; /* Polstring for komfort */
+            border-radius: 5px; /* Let afrundede hjørner */
+            color: #0F0F20; /* Mørk tekst for kontrast */
+            pointer-events: auto; /* Gør interaktiv */
+            opacity: 0.9; /* Let gennemsigtighed for stil */
+            position: relative; /* For pseudo-elementer */
+            overflow: hidden; /* Skjuler overskydende indhold */
+            justify-content: center; /* Centrerer vertikalt */
+            min-height: 120px; /* Minimumshøjde for tekst */
         }
+
         .choice img {
-            pointer-events: auto;
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-            margin-bottom: 8px;
+            pointer-events: auto; /* Gør billedet interaktivt */
+            width: 100px; /* Fast bredde */
+            height: 100px; /* Fast højde */
+            object-fit: contain; /* Bevarer proportioner */
+            margin-bottom: 8px; /* Afstand til etiket */
         }
+
         .choice:active {
-            transform: scale(1.1);
+            transform: scale(1.1); /* Forstørrer ved tryk */
         }
+
+        /* Ripple-effekt ved touch */
         .choice.touch-active::before {
-            content: '';
-            position: absolute;
+            content: ''; /* Pseudo-element for effekt */
+            position: absolute; /* Placeres i midten */
             top: 50%;
             left: 50%;
             width: 0;
             height: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
-            transform: translate(-50%, -50%);
-            animation: ripple 0.5s ease-out forwards;
+            border-radius: 50%; /* Rund form */
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%); /* Gradient-effekt */
+            transform: translate(-50%, -50%); /* Centrerer */
+            animation: ripple 0.5s ease-out forwards; /* Animeret udvidelse */
         }
+
         @keyframes ripple {
             to {
-                width: 200px;
+                width: 200px; /* Maksimal størrelse */
                 height: 200px;
-                opacity: 0;
+                opacity: 0; /* Bliver gennemsigtig */
             }
         }
+
+        /* Etiketter i valgmuligheder */
         .choice .image-label {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.2em; /* Slightly smaller text for fit, but readable */
-            line-height: 1.2;
-            text-align: center;
-            white-space: normal; /* Allow wrapping */
+            font-family: 'Space Grotesk', sans-serif; /* Konsistent font */
+            font-size: 1.2em; /* Læsbar størrelse */
+            line-height: 1.2; /* For læsbarhed */
+            text-align: center; /* Centreret tekst */
+            white-space: normal; /* Tillader tekstombrydning */
         }
-        .choice:nth-child(1) {
-            background: #40798C;
-        }
-        .choice:nth-child(2) {
-            background: #FF6B6B;
-        }
-        .choice:nth-child(3) {
-            background: #FC814A;
-        }
-        .choice:nth-child(4) {
-            background: #9ED24F;
-        }
+
+        /* Forskellige baggrundsfarver for valgmuligheder */
+        .choice:nth-child(1) { background: #40798C; } /* Blå */
+        .choice:nth-child(2) { background: #FF6B6B; } /* Rød */
+        .choice:nth-child(3) { background: #FC814A; } /* Orange */
+        .choice:nth-child(4) { background: #9ED24F; } /* Grøn */
+
+        /* Styling af resultatvisning */
         .result-container {
-            display: flex;
-            width: 100%;
-            max-width: 800px;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
+            display: flex; /* Vandret opstilling */
+            width: 100%; /* Fuld bredde */
+            max-width: 800px; /* Begrænset bredde */
+            justify-content: space-between; /* Fordeler indhold */
+            align-items: center; /* Centrerer vertikalt */
+            padding: 20px; /* Polstring */
         }
+
+        /* Container for astronaut */
         .astronaut-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            text-align: center;
-            max-width: 40%;
+            flex: 1; /* Tager tilgængelig plads */
+            display: flex; /* Fleksibel opstilling */
+            align-items: center; /* Centrerer vertikalt */
+            text-align: center; /* Centrerer tekst */
+            max-width: 40%; /* Begrænser bredden */
         }
+
         .astronaut-container img {
-            width: 150px;
-            height: auto;
-            margin-right: 20px;
+            width: 150px; /* Fast bredde */
+            height: auto; /* Bevarer proportioner */
+            margin-right: 20px; /* Afstand til talebobble */
         }
+
+        /* Styling af talebobble */
         .speech-bubble {
-            position: relative;
-            background: #0F0F20;
-            border: 2px solid #FFFFFF;
-            color: #FFFFFF;
-            padding: 10px;
-            border-radius: 10px;
-            max-width: 80%;
+            position: relative; /* For pseudo-element */
+            background: #0F0F20; /* Mørk baggrund */
+            border: 2px solid #FFFFFF; /* Hvid kant */
+            color: #FFFFFF; /* Hvid tekst */
+            padding: 10px; /* Polstring */
+            border-radius: 10px; /* Afrundede hjørner */
+            max-width: 80%; /* Begrænser bredden */
         }
+
         .speech-bubble-title {
-            color: #9ED24F;
-            font-weight: bold;
-            margin-bottom: 5px;
+            color: #9ED24F; /* Grøn titel */
+            font-weight: bold; /* Fed tekst */
+            margin-bottom: 5px; /* Afstand til tekst */
         }
+
+        /* Talebobble-pil */
         .speech-bubble::after {
-            content: '';
-            position: absolute;
-            left: -12px;
-            top: 50%;
-            transform: translateY(-50%);
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            border-right: 10px solid #0F0F20;
-            border-left: 2px solid #FFFFFF;
-            border-top: 2px solid #FFFFFF;
-            border-bottom: 2px solid #FFFFFF;
+            content: ''; /* Pseudo-element */
+            position: absolute; /* Placeres relativt */
+            left: -12px; /* Uden for boblen */
+            top: 50%; /* Midt på højden */
+            transform: translateY(-50%); /* Centrerer vertikalt */
+            border-top: 10px solid transparent; /* Gennemsigtig top */
+            border-bottom: 10px solid transparent; /* Gennemsigtig bund */
+            border-right: 10px solid #0F0F20; /* Mørk pil */
+            border-left: 2px solid #FFFFFF; /* Hvid kant */
+            border-top: 2px solid #FFFFFF; /* Hvid kant */
+            border-bottom: 2px solid #FFFFFF; /* Hvid kant */
         }
+
+        /* Container for planet-resultat */
         .planet-result-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            flex: 1; /* Tager tilgængelig plads */
+            display: flex; /* Fleksibel opstilling */
+            justify-content: center; /* Centrerer horisontalt */
+            align-items: center; /* Centrerer vertikalt */
         }
+
         .planet-result-container img {
-            max-width: 300px;
-            height: auto;
+            max-width: 300px; /* Begrænset bredde */
+            height: auto; /* Bevarer proportioner */
         }
+
+        /* Animation for rejse gennem sort hul */
         .wormhole-travel {
-            animation: wormhole 1s forwards;
+            animation: wormhole 1s forwards; /* Kører én gang */
         }
+
         @keyframes wormhole {
-            0% { transform: scale(1) rotate(0); opacity: 1; }
-            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+            0% { transform: scale(1) rotate(0); opacity: 1; } /* Startposition */
+            100% { transform: scale(0) rotate(360deg); opacity: 0; } /* Forsvinder med rotation */
         }
+
+        /* Fade-in animation */
         .fade-in {
-            animation: fadeIn 1s ease-in;
+            animation: fadeIn 1s ease-in; /* Glidende fremkomst */
         }
+
+        /* Fade-out animation */
         .fade-out {
-            animation: fadeOut 1s ease-out;
+            animation: fadeOut 1s ease-out; /* Glidende forsvinden */
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; } /* Starter usynlig */
+            to { opacity: 1; } /* Bliver synlig */
         }
+
         @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
+            from { opacity: 1; } /* Starter synlig */
+            to { opacity: 0; } /* Bliver usynlig */
         }
+
+        /* Styling af quiz-container */
         .quiz-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-            position: fixed;
-            top: 10px;
+            display: flex; /* Vandret opstilling */
+            width: 100%; /* Fuld bredde */
+            height: 100%; /* Fuld højde */
+            position: fixed; /* Fast position */
+            top: 10px; /* Afstand fra toppen */
             left: 0;
-            z-index: 20;
+            z-index: 20; /* Over museum */
         }
+
+        /* Venstre side af quiz */
         .quiz-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
-            padding: 20px;
-            margin-top: -40px;
-            margin-left: 160px;
+            flex: 1; /* Tager tilgængelig plads */
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            justify-content: flex-start; /* Starter øverst */
+            align-items: flex-start; /* Justerer til venstre */
+            padding: 20px; /* Polstring */
+            margin-top: -40px; /* Justering for layout */
+            margin-left: 160px; /* Afstand fra venstre */
         }
-        
+
+        /* Højre side af quiz */
         .quiz-right {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 20px;
+            flex: 1; /* Tager tilgængelig plads */
+            display: flex; /* Fleksibel opstilling */
+            flex-direction: column; /* Lodret opstilling */
+            justify-content: flex-start; /* Starter øverst */
+            align-items: center; /* Centrerer horisontalt */
+            padding: 20px; /* Polstring */
             margin-top: 0;
         }
-       
+
+        /* Styling af quiz-titel */
         .quiz-title {
-            color: #9ED24F;
-            font-size: 3em;
-            font-weight: 700;
-            text-align: center;
+            color: #9ED24F; /* Grøn farve */
+            font-size: 3em; /* Stor tekst */
+            font-weight: 700; /* Fed skrift */
+            text-align: center; /* Centreret */
             margin-top: 0;
-            margin-bottom: 20px;
-            text-transform: uppercase;
+            margin-bottom: 20px; /* Afstand til indhold */
+            text-transform: uppercase; /* Store bogstaver */
         }
+
+        /* Overskrift i venstre quiz-del */
         .quiz-left h2 {
-            font-size: 3em;
-            font-weight: 700;
-            color: #ff6b6b;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-            text-align: left;
-            width: 100%;
+            font-size: 3em; /* Stor tekst */
+            font-weight: 700; /* Fed skrift */
+            color: #ff6b6b; /* Rød farve for kontrast */
+            text-transform: uppercase; /* Store bogstaver */
+            margin-bottom: 15px; /* Afstand til tekst */
+            text-align: left; /* Venstrejusteret */
+            width: 100%; /* Fuld bredde */
         }
+
+        /* Læs mere-prompt i quiz */
         .quiz-left .read-more-prompt {
-            font-size: 1.3em;
-            line-height: 1.4;
-            margin: 80px 0 0px 0;
-            max-width: 80%;
-            text-align: left;
+            font-size: 1.3em; /* Lidt mindre tekst */
+            line-height: 1.4; /* For læsbarhed */
+            margin: 80px 0 0px 0; /* Afstand for layout */
+            max-width: 80%; /* Begrænset bredde */
+            text-align: left; /* Venstrejusteret */
         }
+
+        /* Tekst i venstre quiz-del */
         .quiz-left p {
-            font-size: 1.5em;
-            line-height: 1.4;
+            font-size: 1.5em; /* Læsbar størrelse */
+            line-height: 1.4; /* For læsbarhed */
             margin: 0;
-            max-width: 80%;
-            text-align: left;
+            max-width: 80%; /* Begrænset bredde */
+            text-align: left; /* Venstrejusteret */
         }
+
+        /* Roterende planet-animation */
         .spinning-planet {
-            animation: spin 10s linear infinite;
-            border-radius: 50%;
-            transition: animation-duration 0.3s ease;
-            width: 500px !important;
-            height: 500px !important;
-            object-fit: contain;
+            animation: spin 10s linear infinite; /* Konstant rotation */
+            border-radius: 50%; /* Rund form */
+            transition: animation-duration 0.3s ease; /* Glidende ændring af hastighed */
+            width: 500px !important; /* Fast bredde */
+            height: 500px !important; /* Fast højde */
+            object-fit: contain; /* Bevarer proportioner */
         }
+
         .spinning-planet.fast {
-            animation-duration: 2s;
+            animation-duration: 2s; /* Hurtigere rotation ved touch */
         }
+
         @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            from { transform: rotate(0deg); } /* Starter ved 0 grader */
+            to { transform: rotate(360deg); } /* Roterer fuld cirkel */
         }
+
+        /* Styling af raketmand */
         .rocket-man {
-            position: absolute;
-            width: 100px;
-            height: auto;
-            transition: left 2s linear, top 2s linear;
-            z-index: 100;
+            position: absolute; /* Absolut position */
+            width: 100px; /* Fast bredde */
+            height: auto; /* Bevarer proportioner */
+            transition: left 2s linear, top 2s linear; /* Glidende bevægelse */
+            z-index: 100; /* Øverst i lagene */
         }
+
+        /* Bounce-animation for raketmand */
         .bounce {
-            animation: bounce 1s ease-in-out infinite;
+            animation: bounce 1s ease-in-out infinite; /* Konstant hop */
         }
+
         @keyframes bounce {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
+            0%, 100% { transform: translateY(0); } /* Start og slut */
+            50% { transform: translateY(-10px); } /* Midtpunkt */
         }
+
+        /* Responsiv styling for små skærme */
         @media (max-width: 768px) {
             #front-page h1 {
-                font-size: 2em;
+                font-size: 2em; /* Mindre tekst for mobil */
             }
+
             #front-page p {
-                font-size: 1em;
+                font-size: 1em; /* Mindre tekst for læsbarhed */
             }
+
             .cartoon-btn {
-                padding: 10px 20px;
-                font-size: 1.2em;
+                padding: 10px 20px; /* Mindre polstring */
+                font-size: 1.2em; /* Mindre tekst */
                 box-shadow: 
-                    0 3px 0 #000000,
-                    0 5px 0 #2A4D5A,
-                    0 8px 10px rgba(0, 0, 0, 0.4);
+                    0 3px 0 #000000, /* Reduceret skygge */
+                    0 5px 0 #2A4D5A, /* Mørkere skygge */
+                    0 8px 10px rgba(0, 0, 0, 0.4); /* Mindre diffus skygge */
             }
+
             .cartoon-btn:active {
                 box-shadow: 
-                    0 1px 0 #000000,
-                    0 3px 0 #2A4D5A,
-                    0 4px 8px rgba(0, 0, 0, 0.3);
+                    0 1px 0 #000000, /* Minimal skygge ved tryk */
+                    0 3px 0 #2A4D5A, /* Mindre farvet skygge */
+                    0 4px 8px rgba(0, 0, 0, 0.3); /* Mindre diffus skygge */
             }
+
             .tilbage-btn {
-                padding: 8px 16px;
-                font-size: 1em;
-                border: 1px solid #000000;
+                padding: 8px 16px; /* Mindre polstring */
+                font-size: 1em; /* Mindre tekst */
+                border: 1px solid #000000; /* Sort kant */
             }
+
             #reset-btn {
-                width: 60px;
+                width: 60px; /* Mindre cirkel */
                 height: 60px;
-                font-size: 12px;
+                font-size: 12px; /* Mindre tekst */
                 padding: 0;
                 box-sizing: border-box;
                 left: 50%;
-                transform: translateX(-50%);
+                transform: translateX(-50%); /* Centrerer */
             }
+
             .planet-circles {
-                gap: 6px;
+                gap: 6px; /* Mindre afstand */
             }
+
             .circle {
-                width: 15px;
+                width: 15px; /* Mindre cirkler */
                 height: 15px;
             }
+
             #saved-count {
-                font-size: 16px;
+                font-size: 16px; /* Mindre tekst */
             }
+
             #saved-count span {
-                margin-bottom: 3px;
+                margin-bottom: 3px; /* Mindre afstand */
             }
+
             .choices-container {
-                gap: 20px;
-                padding: 0 10px;
+                gap: 20px; /* Mindre afstand */
+                padding: 0 10px; /* Polstring til kanter */
             }
+
             .choice {
-                width: 140px;
-                padding: 20px; /* Large touch target */
-                min-height: 100px; /* Space for text */
+                width: 140px; /* Mindre valgmuligheder */
+                padding: 20px; /* Større touch-område */
+                min-height: 100px; /* Plads til tekst */
             }
+
             .choice img {
-                width: 60px; /* Even smaller on mobile */
-                max-width: 60%;
-                 max-height: 60%;
+                width: 60px; /* Mindre billeder */
+                max-width: 60%; /* Begrænset størrelse */
+                max-height: 60%;
             }
+
             .choice .image-label {
-                font-size: 0.8em; /* Fit text on small screens */
+                font-size: 0.8em; /* Mindre tekst for mobil */
             }
+
             .panel {
-                padding: 10px;
-                max-width: 90%;
+                padding: 10px; /* Mindre polstring */
+                max-width: 90%; /* Næsten fuld bredde */
             }
+
             .quiz-left, .quiz-right {
-                padding: 10px;
+                padding: 10px; /* Mindre polstring */
                 margin-top: 0;
-                margin-left: 20px;
+                margin-left: 20px; /* Mindre margin */
             }
+
             .quiz-title {
-                font-size: 1.5em;
+                font-size: 1.5em; /* Mindre titel */
                 margin-top: 0;
             }
+
             .quiz-left h2 {
-                font-size: 1.8em;
+                font-size: 1.8em; /* Mindre overskrift */
             }
+
             .quiz-left .read-more-prompt {
-                font-size: 1.1em;
-                max-width: 90%;
+                font-size: 1.1em; /* Mindre tekst */
+                max-width: 90%; /* Næsten fuld bredde */
             }
+
             .quiz-left p {
-                font-size: 1.5em;
-                max-width: 90%;
+                font-size: 1.5em; /* Læsbar tekst */
+                max-width: 90%; /* Næsten fuld bredde */
             }
+
             .result-container {
-                flex-direction: column;
+                flex-direction: column; /* Lodret opstilling */
             }
+
             .astronaut-container, .planet-result-container {
-                max-width: 100%;
+                max-width: 100%; /* Fuld bredde */
             }
+
             .astronaut-container img {
-                width: 100px;
+                width: 100px; /* Mindre billede */
             }
+
             .planet-result-container img {
-                max-width: 200px;
+                max-width: 200px; /* Mindre billede */
             }
+
             .end-scene {
-                padding: 10px;
-                max-width: 90%;
+                padding: 10px; /* Mindre polstring */
+                max-width: 90%; /* Næsten fuld bredde */
             }
+
             .end-scene img {
-                max-width: 80%;
+                max-width: 80%; /* Mindre billede */
             }
+
             .end-scene p {
-                font-size: 1em;
+                font-size: 1em; /* Mindre tekst */
             }
-            .dragging { animation-duration: 0.5s !important; } /* Lighter drag anim on mobile */
+
+            .dragging { animation-duration: 0.5s !important; } /* Kortere animation på mobil */
         }
     </style>
 </head>
 <body>
+    <!-- Canvas til stjernefeltet i baggrunden -->
     <canvas id="starfield"></canvas>
+    <!-- Forside med introduktionstekst og startknap -->
     <div id="front-page" class="fade-in">
         <h1>FLYGT FRA DEN DØENDE JORD</h1>
         <p>Jorden er døende, og menneskeheden har brug for nye hjem. Udforsk galaksen, besvar quizzer og gør planeter beboelige for at redde os alle!</p>
         <button id="start-btn" class="cartoon-btn">START</button>
     </div>
+    <!-- Hovedspilområde med rum og HUD -->
     <div id="museum">
         <div id="rooms"></div>
         <div id="hud">
@@ -671,6 +825,7 @@
         <div id="modal" tabindex="-1"></div>
     </div>
     <script>
+        // Dataobjekt med information om rum og planeter
         const data = {
             "rooms": [
                 {
@@ -738,7 +893,7 @@
                                     "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Ved 1 km dybde er trykket 100 gange stærkere end på Jorden. Selv små fejl i kuplerne ville knuse dem.",
                                     "deathImage": "https://placehold.co/400x300/png?text=Død+i+Kollaps"
                                 },
-                                                                {
+                                {
                                     "image": "kepler_l2.png",
                                     "alt": "Bygge flydende byer, som kan holde sig oven vande",
                                     "correct": true,
@@ -782,8 +937,9 @@
                                     "image": "kepler4_l1.png",
                                     "alt": "Byg på høje bjerge, hvor tyngdekraften er lidt svagere",
                                     "correct": false,
-                                      "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Tyngdekraften er teknisk set lidt lavere højere oppe, men forskellen er minimal – det ville ikke gøre den store forskel.",
-                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Overanstrengelse"   },
+                                    "deathText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Tyngdekraften er teknisk set lidt lavere højere oppe, men forskellen er minimal – det ville ikke gøre den store forskel.",
+                                    "deathImage": "https://placehold.co/400x300/png?text=Død+af+Overanstrengelse"
+                                },
                                 {
                                     "image": "kepler4_l2.png",
                                     "alt": "Genmodificere kroppen til at blive stærkere",
@@ -801,9 +957,8 @@
                                 {
                                     "image": "kepler4_l4.png",
                                     "alt": "Udvikle exoskeletter til at bære vægten",
-                                     "correct": true,
+                                    "correct": true,
                                     "successText": "VI TABTE CA. 1 MIA. MENNESKER! <br><br> Mennesker kan bevare deres normale krop, men få hjælp af teknologien til at bære vægten. Det gør hverdagen realistisk og fleksibel, uden at vi behøver ændre os biologisk."
-                              
                                 }
                             ],
                             "image": "kepler-442b-ubeboelig.png",
@@ -851,7 +1006,7 @@
                                     "alt": "Forlad planet og flyv videre planet",
                                     "correct": true,
                                     "successText": "DU REDDEDE CA. 1 MIA. MENNESKER <br><br> HD189733b's ekstreme vinde og glasregn gør landing umulig. At ignorere planeten og søge andre muligheder redder ressourcer og liv."
-                                },
+                                }
                             ],
                             "image": "hd-189733b-ubeboelig.png",
                             "savedImage": "hd-189733b.png",
@@ -939,24 +1094,27 @@
             ]
         };
 
-        let savedPlanets = new Set();
-        let attemptedPlanets = new Set();
-        let currentRoom = 1;
-        let lastFocusedElement;
-        let draggedPlanet = null; // Track current drag
-        let animationId;
+        // Variabler til spillets tilstand
+        let savedPlanets = new Set(); // Holder styr på reddede planeter
+        let attemptedPlanets = new Set(); // Holder styr på forsøgte planeter
+        let currentRoom = 1; // Starter i første rum
+        let lastFocusedElement; // Gemmer sidste fokuserede element for tilgængelighed
+        let draggedPlanet = null; // Sporer planet under træk
+        let animationId; // Til animationskontrol
 
+        // Initialiserer spillet
         function init() {
-            loadProgress();
-            createRooms();
-            showRoom(currentRoom);
-            initStarfield();
-            setupResetButton();
-            setupStartButton();
-            document.getElementById('museum').style.display = 'none';
-            document.getElementById('front-page').style.display = 'flex';
+            loadProgress(); // Indlæser gemte fremskridt
+            createRooms(); // Opretter rum og planeter
+            showRoom(currentRoom); // Viser første rum
+            initStarfield(); // Starter stjernefelt-animation
+            setupResetButton(); // Opsætter nulstil-knap
+            setupStartButton(); // Opsætter startknap
+            document.getElementById('museum').style.display = 'none'; // Skjuler spilområde ved start
+            document.getElementById('front-page').style.display = 'flex'; // Viser forside
         }
 
+        // Indlæser gemte fremskridt fra localStorage
         function loadProgress() {
             const saved = localStorage.getItem('savedPlanets');
             if (saved) {
@@ -966,36 +1124,38 @@
             if (attempted) {
                 attemptedPlanets = new Set(JSON.parse(attempted));
             }
-            updateCounter();
+            updateCounter(); // Opdaterer tæller
         }
 
+        // Gemmer fremskridt til localStorage
         function saveProgress() {
             localStorage.setItem('savedPlanets', JSON.stringify(Array.from(savedPlanets)));
             localStorage.setItem('attemptedPlanets', JSON.stringify(Array.from(attemptedPlanets)));
         }
 
+        // Nulstiller spillet
         function resetGame() {
-            savedPlanets.clear();
-            attemptedPlanets.clear();
-            localStorage.removeItem('savedPlanets');
+            savedPlanets.clear(); // Rydder reddede planeter
+            attemptedPlanets.clear(); // Rydder forsøgte planeter
+            localStorage.removeItem('savedPlanets'); // Fjerner gemte data
             localStorage.removeItem('attemptedPlanets');
-            updateCounter();
+            updateCounter(); // Opdaterer tæller
             const roomsContainer = document.getElementById('rooms');
-            roomsContainer.innerHTML = '';
-            createRooms();
-            showRoom(currentRoom);
+            roomsContainer.innerHTML = ''; // Rydder rum
+            createRooms(); // Genopretter rum
+            showRoom(currentRoom); // Viser aktuelt rum
         }
 
+        // Opsætter nulstil-knappen
         function setupResetButton() {
             const resetBtn = document.getElementById('reset-btn');
             resetBtn.addEventListener('click', () => {
                 resetGame();
-                returnToFrontPage();
+                returnToFrontPage(); // Vender tilbage til forside
             });
-            // Touch feedback only (no preventDefault)
             resetBtn.addEventListener('touchstart', () => {
-                resetBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
+                resetBtn.classList.add('pulse'); // Tilføjer visuel feedback
+                if (navigator.vibrate) navigator.vibrate(50); // Vibration hvis understøttet
                 setTimeout(() => resetBtn.classList.remove('pulse'), 500);
             });
             resetBtn.addEventListener('keydown', (e) => {
@@ -1007,11 +1167,12 @@
             });
         }
 
+        // Opsætter startknappen
         function setupStartButton() {
             const startBtn = document.getElementById('start-btn');
             startBtn.addEventListener('click', startMission);
             startBtn.addEventListener('touchstart', () => {
-                startBtn.classList.add('pulse');
+                startBtn.classList.add('pulse'); // Visuel feedback
                 if (navigator.vibrate) navigator.vibrate(50);
                 setTimeout(() => startBtn.classList.remove('pulse'), 500);
             });
@@ -1023,19 +1184,21 @@
             });
         }
 
+        // Starter missionen (skifter fra forside til spil)
         function startMission() {
             const frontPage = document.getElementById('front-page');
             frontPage.classList.remove('fade-in');
             frontPage.classList.add('fade-out');
             setTimeout(() => {
-                frontPage.style.display = 'none';
-                document.getElementById('museum').style.display = 'block';
+                frontPage.style.display = 'none'; // Skjuler forside
+                document.getElementById('museum').style.display = 'block'; // Viser spil
                 document.getElementById('museum').classList.add('fade-in');
                 setTimeout(() => document.getElementById('museum').classList.remove('fade-in'), 1000);
-                showChoosePlanetPrompt();
+                showChoosePlanetPrompt(); // Viser prompt til at vælge planet
             }, 1000);
         }
 
+        // Viser prompt til at vælge planet
         function showChoosePlanetPrompt() {
             const modal = document.getElementById('modal');
             modal.innerHTML = '';
@@ -1061,9 +1224,10 @@
             modal.appendChild(promptDiv);
             modal.classList.add('active');
             modal.focus();
-            trapFocus(modal);
+            trapFocus(modal); // Begrænser fokus til modal
         }
 
+        // Vender tilbage til forsiden
         function returnToFrontPage() {
             const museum = document.getElementById('museum');
             const frontPage = document.getElementById('front-page');
@@ -1075,11 +1239,12 @@
                 frontPage.classList.remove('fade-out');
                 frontPage.classList.add('fade-in');
                 frontPage.style.opacity = '1';
-                initStarfield();
+                initStarfield(); // Genstarter stjernefelt
                 setTimeout(() => frontPage.classList.remove('fade-in'), 1000);
             }, 1000);
         }
 
+        // Opretter rum og deres elementer
         function createRooms() {
             const roomsContainer = document.getElementById('rooms');
             roomsContainer.innerHTML = '';
@@ -1091,8 +1256,8 @@
                     const container = document.createElement('div');
                     container.classList.add('element-container');
                     container.style.position = 'absolute';
-                    container.style.top = el.position.top;
-                    container.style.left = el.position.left;
+                    container.style.top = el.position.top; // Bruger % for responsivitet
+                    container.style.left = el.position.left; // Bruger % for responsivitet
                     container.dataset.originalTop = el.position.top;
                     container.dataset.originalLeft = el.position.left;
                     const img = document.createElement('img');
@@ -1103,10 +1268,10 @@
                         img.src = el.image || 'https://placehold.co/200x200/png?text=Sort+Hul';
                         img.alt = el.alt || 'Sort hul';
                     }
-                    img.loading = 'lazy';
+                    img.loading = 'lazy'; // Lader billeder indlæse efter behov for ydeevne
                     img.classList.add('element', el.type);
-                    img.style.width = `${el.size || 100}px`;
-                    img.tabIndex = 0;
+                    img.style.width = `${el.size || 100}px`; // Bruger px for præcis kontrol
+                    img.tabIndex = 0; // Gør billedet fokuserbart
                     img.role = 'button';
                     img.ariaLabel = el.name || 'Sort hul';
                     const label = document.createElement('span');
@@ -1121,8 +1286,7 @@
                         }
                         if (!attemptedPlanets.has(el.id)) {
                             img.addEventListener('click', () => showQuiz(el));
-                            // Planet drag setup
-                            setupPlanetDrag(img, container);
+                            setupPlanetDrag(img, container); // Opsætter træk-funktionalitet
                             img.addEventListener('keydown', (e) => {
                                 if (e.key === 'Enter' || e.key === ' ') showQuiz(el);
                             });
@@ -1147,7 +1311,7 @@
             });
         }
 
-        // Individual planet drag (persistent position)
+        // Opsætter træk-funktionalitet for planeter
         function setupPlanetDrag(img, container) {
             let startX, startY, initialLeft, initialTop;
             img.addEventListener('touchstart', (e) => {
@@ -1157,27 +1321,27 @@
                 initialLeft = parseFloat(container.dataset.originalLeft);
                 initialTop = parseFloat(container.dataset.originalTop);
                 draggedPlanet = container;
-                container.style.transition = 'none'; // Disable any transition during drag
+                container.style.transition = 'none'; // Deaktiverer animation under træk
                 img.classList.add('dragging');
                 if (navigator.vibrate) navigator.vibrate(30);
             });
             img.addEventListener('touchmove', (e) => {
                 if (!draggedPlanet) return;
-                e.preventDefault(); // Only prevent on active drag
+                e.preventDefault(); // Forhindrer scrolling
                 const touch = e.touches[0];
                 const deltaX = touch.clientX - startX;
                 const deltaY = touch.clientY - startY;
-                // Clamp to screen bounds (0-100%)
+                // Begrænser bevægelse til skærmen (0-100%)
                 const newLeft = Math.max(0, Math.min(100, initialLeft + (deltaX / window.innerWidth * 100)));
                 const newTop = Math.max(0, Math.min(100, initialTop + (deltaY / window.innerHeight * 100)));
-                draggedPlanet.style.left = `${newLeft}%`;
+                draggedPlanet.style.left = `${newLeft}%`; // Bruger % for responsivitet
                 draggedPlanet.style.top = `${newTop}%`;
                 if (animationId) cancelAnimationFrame(animationId);
-                animationId = requestAnimationFrame(() => {}); // Throttle
+                animationId = requestAnimationFrame(() => {});
             });
             img.addEventListener('touchend', (e) => {
                 if (!draggedPlanet || Math.abs(e.changedTouches[0].clientX - startX) < 10) {
-                    // Short touch = tap, trigger quiz if not dragged
+                    // Kort touch = klik
                     if (!attemptedPlanets.has(img.parentElement.querySelector('img').alt.split(' ')[1].toLowerCase())) {
                         showQuiz(data.rooms[currentRoom - 1].elements.find(el => el.alt === img.alt));
                     }
@@ -1185,18 +1349,18 @@
                     draggedPlanet = null;
                     return;
                 }
-                // Persist new position: update dataset for future drags
+                // Gemmer ny position
                 const finalLeft = parseFloat(draggedPlanet.style.left) || initialLeft;
                 const finalTop = parseFloat(draggedPlanet.style.top) || initialTop;
                 draggedPlanet.dataset.originalLeft = finalLeft.toString();
                 draggedPlanet.dataset.originalTop = finalTop.toString();
-                // No snap-back: stay in place
                 img.classList.remove('dragging');
-                draggedPlanet.style.transition = ''; // Re-enable if needed
+                draggedPlanet.style.transition = ''; // Genaktiverer transition
                 draggedPlanet = null;
             });
         }
 
+        // Viser et rum
         function showRoom(roomId) {
             document.querySelectorAll('.room').forEach(r => r.classList.remove('active'));
             const room = document.getElementById(`room-${roomId}`);
@@ -1209,6 +1373,7 @@
             }
         }
 
+        // Opdaterer tæller for reddede planeter og mennesker
         function updateCounter() {
             const savedCount = savedPlanets.size;
             const failedCount = attemptedPlanets.size - savedCount;
@@ -1227,452 +1392,570 @@
                     circle.classList.add('failed');
                 }
             });
-            savedCountElement.setAttribute('aria-live', 'polite');
+            savedCountElement.setAttribute('aria-live', 'polite'); // Tilgængelighed
         }
 
-        function showQuiz(planet) {
-            lastFocusedElement = document.activeElement;
-            const modal = document.getElementById('modal');
-            modal.innerHTML = '';
-            const quizContainer = document.createElement('div');
-            quizContainer.classList.add('quiz-container', 'fade-in');
-            
-            const tilbageBtn = document.createElement('button');
-            tilbageBtn.textContent = 'TILBAGE';
-            tilbageBtn.classList.add('cartoon-btn', 'tilbage-btn');
-            tilbageBtn.tabIndex = 0;
-            tilbageBtn.role = 'button';
-            tilbageBtn.ariaLabel = 'Tilbage til planeter';
-            tilbageBtn.addEventListener('click', closeModal);
-            tilbageBtn.addEventListener('touchstart', () => {
-                tilbageBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => tilbageBtn.classList.remove('pulse'), 500);
-            });
-            tilbageBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') closeModal();
-            });
-            
-            const leftDiv = document.createElement('div');
-            leftDiv.classList.add('quiz-left');
-            leftDiv.innerHTML = `
-                <h2>PROBLEM</h2>
-                <p>${planet.question}</p>
-                <p class="read-more-prompt">Vil du læse mere om ${planet.name.toLowerCase()}?</p>
-            `;
-            const readMoreBtn = document.createElement('button');
-            readMoreBtn.textContent = 'LÆS MERE';
-            readMoreBtn.classList.add('cartoon-btn', 'read-more-btn');
-            readMoreBtn.tabIndex = 0;
-            readMoreBtn.role = 'button';
-            readMoreBtn.ariaLabel = `Læs mere om ${planet.name}`;
-            readMoreBtn.addEventListener('click', () => showExtendedLore(planet));
-            readMoreBtn.addEventListener('touchstart', () => {
-                readMoreBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => readMoreBtn.classList.remove('pulse'), 500);
-            });
-            readMoreBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') showExtendedLore(planet);
-            });
-            leftDiv.appendChild(readMoreBtn);
-            
-            const rightDiv = document.createElement('div');
-            rightDiv.classList.add('quiz-right');
-            const titleDiv = document.createElement('h2');
-            titleDiv.classList.add('quiz-title');
-            titleDiv.textContent = planet.name.toUpperCase();
-            rightDiv.appendChild(titleDiv);
-            const planetImg = document.createElement('img');
+       // Funktion til at vise quizzen for en given planet
+function showQuiz(planet) {
+    // Gemmer det sidst fokuserede element, så fokus kan genoprettes, når modal lukkes
+    lastFocusedElement = document.activeElement;
+    // Henter modal-elementet fra DOM
+    const modal = document.getElementById('modal');
+    // Tømmer modalens indhold for at sikre, at tidligere indhold fjernes
+    modal.innerHTML = '';
+    // Opretter en container til quizzen
+    const quizContainer = document.createElement('div');
+    // Tilføjer klasser for styling og animation (fade-in for visuel effekt)
+    quizContainer.classList.add('quiz-container', 'fade-in');
+    
+    // Opretter en tilbage-knap
+    const tilbageBtn = document.createElement('button');
+    tilbageBtn.textContent = 'TILBAGE';
+    // Tilføjer klasser for tegneserieagtig stil og specifik tilbage-knap-styling
+    tilbageBtn.classList.add('cartoon-btn', 'tilbage-btn');
+    // Gør knappen fokuserbar med tastatur
+    tilbageBtn.tabIndex = 0;
+    // Angiver rollen som knap for tilgængelighed
+    tilbageBtn.role = 'button';
+    // Tilføjer en tilgængelighedsbeskrivelse for skærmlæsere
+    tilbageBtn.ariaLabel = 'Tilbage til planeter';
+    // Tilføjer en event listener til at lukke modalen ved klik
+    tilbageBtn.addEventListener('click', closeModal);
+    // Tilføjer touch-interaktion med visuel feedback (pulse-effekt) og vibration, hvis understøttet
+    tilbageBtn.addEventListener('touchstart', () => {
+        tilbageBtn.classList.add('pulse');
+        // Vibration giver taktil feedback, hvis enheden understøtter det
+        if (navigator.vibrate) navigator.vibrate(50);
+        // Fjerner pulse-effekten efter 500ms for at skabe en kort animation
+        setTimeout(() => tilbageBtn.classList.remove('pulse'), 500);
+    });
+    // Gør det muligt at aktivere knappen med Enter eller mellemrum for tastaturnavigation
+    tilbageBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') closeModal();
+    });
+    
+    // Opretter venstre del af quizzen, der indeholder spørgsmålet
+    const leftDiv = document.createElement('div');
+    leftDiv.classList.add('quiz-left');
+    // Indsætter spørgsmål og en prompt til at læse mere om planeten
+    // Bruger template literals for dynamisk at indsætte planetens navn og spørgsmål
+    leftDiv.innerHTML = `
+        <h2>PROBLEM</h2>
+        <p>${planet.question}</p>
+        <p class="read-more-prompt">Vil du læse mere om ${planet.name.toLowerCase()}?</p>
+    `;
+    // Opretter en "Læs mere"-knap
+    const readMoreBtn = document.createElement('button');
+    readMoreBtn.textContent = 'LÆS MERE';
+    readMoreBtn.classList.add('cartoon-btn', 'read-more-btn');
+    readMoreBtn.tabIndex = 0;
+    readMoreBtn.role = 'button';
+    readMoreBtn.ariaLabel = `Læs mere om ${planet.name}`;
+    // Kalder showExtendedLore ved klik for at vise udvidet information om planeten
+    readMoreBtn.addEventListener('click', () => showExtendedLore(planet));
+    // Tilføjer touch-feedback ligesom tilbage-knappen
+    readMoreBtn.addEventListener('touchstart', () => {
+        readMoreBtn.classList.add('pulse');
+        if (navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => readMoreBtn.classList.remove('pulse'), 500);
+    });
+    // Gør det muligt at aktivere knappen med Enter eller mellemrum
+    readMoreBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') showExtendedLore(planet);
+    });
+    // Tilføjer knappen til venstre del af quizzen
+    leftDiv.appendChild(readMoreBtn);
+    
+    // Opretter højre del af quizzen, der indeholder planetens billede og titel
+    const rightDiv = document.createElement('div');
+    rightDiv.classList.add('quiz-right');
+    // Opretter en titel til planeten
+    const titleDiv = document.createElement('h2');
+    titleDiv.classList.add('quiz-title');
+    // Konverterer planetens navn til store bogstaver for visuel konsistens
+    titleDiv.textContent = planet.name.toUpperCase();
+    rightDiv.appendChild(titleDiv);
+    // Opretter et billede af planeten
+    const planetImg = document.createElement('img');
+    planetImg.src = planet.savedImage;
+    planetImg.alt = `Beboelig ${planet.name}`;
+    // Bruger lazy loading for at optimere sideindlæsning
+    planetImg.loading = 'lazy';
+    // Tilføjer en klasse for at animere planeten (f.eks. roterende effekt)
+    planetImg.classList.add('spinning-planet');
+    // Sætter billedstørrelsen dynamisk baseret på planetens størrelse, ganget med 3.5 for at skalere
+    planetImg.style.width = `${(planet.size || 100) * 3.5}px`;
+    // Tilføjer en simplificeret touch-interaktion for at ændre animationshastighed
+    planetImg.addEventListener('touchmove', (e) => {
+        // Beregner bevægelseshastighed baseret på touch-input
+        const deltaX = e.touches[0].clientX - e.touches[0].clientX; // Forenklet, genbruger clientX
+        const speed = Math.abs(e.touches[0].clientX - startX) / 100; // Beregner tilnærmet hastighed
+        if (speed > 0.5) {
+            // Tilføjer en klasse for hurtigere animation, hvis hastigheden er høj
+            planetImg.classList.add('fast');
+            // Fjerner klassen efter 500ms for at vende tilbage til normal hastighed
+            setTimeout(() => planetImg.classList.remove('fast'), 500);
+        }
+    });
+    // Valg af touchmove frem for touchstart/touchend giver en mere flydende interaktion, da det reagerer på bevægelse
+    rightDiv.appendChild(planetImg);
+    
+    // Opretter en container til valgmulighederne
+    const choicesContainer = document.createElement('div');
+    choicesContainer.classList.add('choices-container');
+    // Itererer over planetens valgmuligheder
+    planet.choices.forEach(choice => {
+        const choiceDiv = document.createElement('div');
+        choiceDiv.classList.add('choice');
+        // Opretter et billede for hver valgmulighed
+        const choiceImg = document.createElement('img');
+        choiceImg.src = choice.image;
+        choiceImg.alt = choice.alt;
+        choiceImg.loading = 'lazy';
+        choiceImg.tabIndex = 0;
+        choiceImg.role = 'button';
+        choiceImg.ariaLabel = choice.alt;
+        // Gør billedet interaktivt ved at tillade pointer-events
+        choiceImg.style.pointerEvents = 'auto';
+        // Opretter en label til billedet
+        const choiceLabel = document.createElement('span');
+        choiceLabel.textContent = choice.alt;
+        choiceLabel.classList.add('image-label');
+        // Håndterer klik på valget
+        choiceImg.addEventListener('click', () => handleChoice(planet, choice));
+        // Tilføjer touch-feedback
+        choiceImg.addEventListener('touchstart', () => {
+            choiceDiv.classList.add('touch-active');
+            if (navigator.vibrate) navigator.vibrate(30);
+            setTimeout(() => choiceDiv.classList.remove('touch-active'), 500);
+        });
+        // Gør det muligt at vælge med tastatur
+        choiceImg.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') handleChoice(planet, choice);
+        });
+        choiceDiv.appendChild(choiceImg);
+        choiceDiv.appendChild(choiceLabel);
+        choicesContainer.appendChild(choiceDiv);
+    });
+    
+    // Samler quizzen ved at tilføje venstre og højre del til containeren
+    quizContainer.appendChild(leftDiv);
+    quizContainer.appendChild(rightDiv);
+    // Tilføjer tilbage-knappen og valgmulighederne til modalen
+    modal.appendChild(tilbageBtn);
+    modal.appendChild(quizContainer);
+    modal.appendChild(choicesContainer);
+    // Aktiverer modalen ved at tilføje 'active'-klassen
+    modal.classList.add('active');
+    // Sætter fokus på modalen for tilgængelighed
+    modal.focus();
+    // Fanger fokus inden for modalen for at forbedre tastaturnavigation
+    trapFocus(modal);
+
+    // Opretter et billede af en raket
+    const rocketImg = document.createElement('img');
+    rocketImg.src = planet.rocketImage || 'https://placehold.co/100x100/png?text=Rocket';
+    rocketImg.classList.add('rocket-man');
+    // Sætter startpositionen for raketten
+    rocketImg.style.left = planet.startPos.left;
+    rocketImg.style.top = planet.startPos.top;
+    modal.appendChild(rocketImg);
+    // Animerer raketten til en mellemposition og derefter til en slutposition
+    setTimeout(() => {
+        const startLeft = parseFloat(planet.startPos.left);
+        const endLeft = parseFloat(planet.endPos.left);
+        const startTop = parseFloat(planet.startPos.top);
+        const endTop = parseFloat(planet.endPos.top);
+        const midLeft = startLeft + (endLeft - startLeft) * 0.7;
+        const midTop = startTop + (endTop - startTop) * 0.7;
+        rocketImg.style.left = `${midLeft}%`;
+        rocketImg.style.top = `${midTop}%`;
+        // Tilføjer en bounce-effekt efter 2 sekunder for at gøre animationen mere livlig
+        setTimeout(() => {
+            rocketImg.classList.add('bounce');
+        }, 2000);
+    }, 100);
+    // Valg af setTimeout frem for CSS-animation giver mere kontrol over timingen og muliggør dynamiske positioner
+}
+
+// Funktion til at vise udvidet information (lore) om en planet
+function showExtendedLore(planet) {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = '';
+    // Opretter en panel-container til lore-indholdet
+    const lorePanel = document.createElement('div');
+    lorePanel.classList.add('panel', 'fade-in');
+    // Indsætter planetens navn og udvidede beskrivelse
+    lorePanel.innerHTML = `
+        <h2>${planet.name.toUpperCase()}</h2>
+        <p>${planet.extendedLore}</p>
+    `;
+    // Opretter en luk-knap
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'LUK';
+    closeBtn.classList.add('cartoon-btn', 'return-btn');
+    closeBtn.tabIndex = 0;
+    closeBtn.role = 'button';
+    closeBtn.ariaLabel = 'Luk detaljer om planeten';
+    // Går tilbage til quizzen ved klik
+    closeBtn.addEventListener('click', () => showQuiz(planet));
+    // Tilføjer touch-feedback
+    closeBtn.addEventListener('touchstart', () => {
+        closeBtn.classList.add('pulse');
+        if (navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => closeBtn.classList.remove('pulse'), 500);
+    });
+    // Gør det muligt at lukke med tastatur
+    closeBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
+    });
+    lorePanel.appendChild(closeBtn);
+    modal.appendChild(lorePanel);
+    modal.classList.add('active');
+    modal.focus();
+    trapFocus(modal);
+    // Valg af en separat funktion for lore frem for at integrere i showQuiz holder koden mere organiseret og genbrugelig
+}
+
+// Funktion til at håndtere brugerens valg i quizzen
+function handleChoice(planet, choice) {
+    // Lukker modalen
+    closeModal();
+    // Tilføjer planetens ID til forsøgte planeter
+    attemptedPlanets.add(planet.id);
+    // Gemmer fremskridt
+    saveProgress();
+    // Finder planetens billede i DOM
+    const planetImg = document.querySelector(`img[src="${planet.image}"], img[src="${planet.savedImage}"]`);
+    if (planetImg) {
+        // Marker planeten som forsøgt
+        planetImg.classList.add('attempted');
+        // Fjerner interaktivitet, så planeten ikke kan vælges igen
+        planetImg.removeEventListener('click', () => showQuiz(planet));
+        planetImg.removeEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
+        });
+    }
+    if (choice.correct) {
+        // Hvis valget er korrekt
+        if (planetImg) {
+            // Tilføjer fade-in-effekt for visuel feedback
+            planetImg.classList.add('fade-in');
+            // Opdaterer billedet til det "beboelige" billede
             planetImg.src = planet.savedImage;
             planetImg.alt = `Beboelig ${planet.name}`;
-            planetImg.loading = 'lazy';
-            planetImg.classList.add('spinning-planet');
-            planetImg.style.width = `${(planet.size || 100) * 3.5}px`;
-            // Simplified touch: speed on move
-            planetImg.addEventListener('touchmove', (e) => {
-                const deltaX = e.touches[0].clientX - e.touches[0].clientX; // Reuse for speed
-                const speed = Math.abs(e.touches[0].clientX - startX) / 100; // Approx
-                if (speed > 0.5) {
-                    planetImg.classList.add('fast');
-                    setTimeout(() => planetImg.classList.remove('fast'), 500);
-                }
-            });
-            rightDiv.appendChild(planetImg);
-            
-            const choicesContainer = document.createElement('div');
-            choicesContainer.classList.add('choices-container');
-            planet.choices.forEach(choice => {
-                const choiceDiv = document.createElement('div');
-                choiceDiv.classList.add('choice');
-                const choiceImg = document.createElement('img');
-                choiceImg.src = choice.image;
-                choiceImg.alt = choice.alt;
-                choiceImg.loading = 'lazy';
-                choiceImg.tabIndex = 0;
-                choiceImg.role = 'button';
-                choiceImg.ariaLabel = choice.alt;
-                choiceImg.style.pointerEvents = 'auto';
-                const choiceLabel = document.createElement('span');
-                choiceLabel.textContent = choice.alt;
-                choiceLabel.classList.add('image-label');
-                choiceImg.addEventListener('click', () => handleChoice(planet, choice));
-                choiceImg.addEventListener('touchstart', () => {
-                    choiceDiv.classList.add('touch-active');
-                    if (navigator.vibrate) navigator.vibrate(30);
-                    setTimeout(() => choiceDiv.classList.remove('touch-active'), 500);
-                });
-                choiceImg.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') handleChoice(planet, choice);
-                });
-                choiceDiv.appendChild(choiceImg);
-                choiceDiv.appendChild(choiceLabel);
-                choicesContainer.appendChild(choiceDiv);
-            });
-            
-            quizContainer.appendChild(leftDiv);
-            quizContainer.appendChild(rightDiv);
-            modal.appendChild(tilbageBtn);
-            modal.appendChild(quizContainer);
-            modal.appendChild(choicesContainer);
-            modal.classList.add('active');
-            modal.focus();
-            trapFocus(modal);
-
-            const rocketImg = document.createElement('img');
-            rocketImg.src = planet.rocketImage || 'https://placehold.co/100x100/png?text=Rocket';
-            rocketImg.classList.add('rocket-man');
-            rocketImg.style.left = planet.startPos.left;
-            rocketImg.style.top = planet.startPos.top;
-            modal.appendChild(rocketImg);
-            setTimeout(() => {
-                const startLeft = parseFloat(planet.startPos.left);
-                const endLeft = parseFloat(planet.endPos.left);
-                const startTop = parseFloat(planet.startPos.top);
-                const endTop = parseFloat(planet.endPos.top);
-                const midLeft = startLeft + (endLeft - startLeft) * 0.7;
-                const midTop = startTop + (endTop - startTop) * 0.7;
-                rocketImg.style.left = `${midLeft}%`;
-                rocketImg.style.top = `${midTop}%`;
-                setTimeout(() => {
-                    rocketImg.classList.add('bounce');
-                }, 2000);
-            }, 100);
+            planetImg.classList.add('saved');
+            // Opdaterer label til "Beboelig"
+            const label = planetImg.parentElement.querySelector('.image-label');
+            if (label) label.textContent = 'Beboelig';
+            setTimeout(() => planetImg.classList.remove('fade-in'), 1000);
         }
-
-        function showExtendedLore(planet) {
-            const modal = document.getElementById('modal');
-            modal.innerHTML = '';
-            const lorePanel = document.createElement('div');
-            lorePanel.classList.add('panel', 'fade-in');
-            lorePanel.innerHTML = `
-                <h2>${planet.name.toUpperCase()}</h2>
-                <p>${planet.extendedLore}</p>
-            `;
-            const closeBtn = document.createElement('button');
-            closeBtn.textContent = 'LUK';
-            closeBtn.classList.add('cartoon-btn', 'return-btn');
-            closeBtn.tabIndex = 0;
-            closeBtn.role = 'button';
-            closeBtn.ariaLabel = 'Luk detaljer om planeten';
-            closeBtn.addEventListener('click', () => showQuiz(planet));
-            closeBtn.addEventListener('touchstart', () => {
-                closeBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => closeBtn.classList.remove('pulse'), 500);
-            });
-            closeBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
-            });
-            lorePanel.appendChild(closeBtn);
-            modal.appendChild(lorePanel);
-            modal.classList.add('active');
-            modal.focus();
-            trapFocus(modal);
+        // Tilføjer planeten til reddede planeter
+        savedPlanets.add(planet.id);
+        saveProgress();
+        updateCounter();
+        // Viser succes-skærm
+        showSuccess(planet, choice);
+    } else {
+        // Hvis valget er forkert
+        if (planetImg) {
+            planetImg.classList.add('fade-in');
+            // Gendanner det oprindelige billede
+            planetImg.src = planet.image;
+            planetImg.alt = planet.alt;
+            planetImg.classList.remove('saved');
+            const label = planetImg.parentElement.querySelector('.image-label');
+            if (label) label.textContent = planet.alt;
+            setTimeout(() => planetImg.classList.remove('fade-in'), 1000);
         }
+        saveProgress();
+        updateCounter();
+        // Viser fiasko-skærm
+        showDeath(planet, choice);
+    }
+    // Adskillelsen af korrekt og forkert logik gør koden mere læsbar og vedligeholdelsesvenlig
+}
 
-        function handleChoice(planet, choice) {
+// Funktion til at vise fiasko-skærmen
+function showDeath(planet, choice) {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = '';
+    const resultDiv = document.createElement('div');
+    resultDiv.classList.add('result-container', 'fade-in');
+    
+    // Opretter container til astronautbillede og taleboble
+    const astronautDiv = document.createElement('div');
+    astronautDiv.classList.add('astronaut-container');
+    astronautDiv.innerHTML = `
+        <img src="${planet.failureAstronaut}" alt="Sad Astronaut on ${planet.name}" loading="lazy">
+        <div class="speech-bubble">
+            <div class="speech-bubble-title">FORKERT!</div>
+            ${choice.deathText}
+        </div>
+    `;
+    
+    // Opretter container til planetbillede
+    const planetDiv = document.createElement('div');
+    planetDiv.classList.add('planet-result-container');
+    planetDiv.innerHTML = `
+        <img src="${planet.image}" alt="${planet.alt}" loading="lazy">
+    `;
+    
+    // Opretter en knap til at gå videre
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'FIND DEN NÆSTE PLANET';
+    nextBtn.classList.add('cartoon-btn', 'return-btn');
+    nextBtn.tabIndex = 0;
+    nextBtn.role = 'button';
+    nextBtn.ariaLabel = 'Find den næste planet';
+    nextBtn.addEventListener('click', () => {
+        closeModal();
+        checkForEnd();
+    });
+    nextBtn.addEventListener('touchstart', () => {
+        nextBtn.classList.add('pulse');
+        if (navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => nextBtn.classList.remove('pulse'), 500);
+    });
+    nextBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
             closeModal();
-            attemptedPlanets.add(planet.id);
-            saveProgress();
-            const planetImg = document.querySelector(`img[src="${planet.image}"], img[src="${planet.savedImage}"]`);
-            if (planetImg) {
-                planetImg.classList.add('attempted');
-                planetImg.removeEventListener('click', () => showQuiz(planet));
-                planetImg.removeEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') showQuiz(planet);
-                });
+            checkForEnd();
+        }
+    });
+    
+    resultDiv.appendChild(astronautDiv);
+    resultDiv.appendChild(planetDiv);
+    modal.appendChild(resultDiv);
+    modal.appendChild(nextBtn);
+    modal.classList.add('active');
+    modal.focus();
+    trapFocus(modal);
+}
+
+// Funktion til at vise succes-skærmen
+function showSuccess(planet, choice) {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = '';
+    const resultDiv = document.createElement('div');
+    resultDiv.classList.add('result-container', 'fade-in');
+    
+    // Opretter container til astronautbillede og taleboble
+    const astronautDiv = document.createElement('div');
+    astronautDiv.classList.add('astronaut-container');
+    astronautDiv.innerHTML = `
+        <img src="${planet.successAstronaut}" alt="Happy Astronaut on ${planet.name}" loading="lazy">
+        <div class="speech-bubble">
+            <div class="speech-bubble-title">RIGTIGT!</div>
+            ${choice.successText}
+        </div>
+    `;
+    
+    // Opretter container til planetbillede
+    const planetDiv = document.createElement('div');
+    planetDiv.classList.add('planet-result-container');
+    planetDiv.innerHTML = `
+        <img src="${planet.savedImage}" alt="Beboelig ${planet.name}" loading="lazy">
+    `;
+    
+    // Opretter en knap til at gå videre
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'FIND DEN NÆSTE PLANET';
+    nextBtn.classList.add('cartoon-btn', 'return-btn');
+    nextBtn.tabIndex = 0;
+    nextBtn.role = 'button';
+    nextBtn.ariaLabel = 'Find den næste planet';
+    nextBtn.addEventListener('click', () => {
+        closeModal();
+        checkForEnd();
+    });
+    nextBtn.addEventListener('touchstart', () => {
+        nextBtn.classList.add('pulse');
+        if (navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => nextBtn.classList.remove('pulse'), 500);
+    });
+    nextBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            closeModal();
+            checkForEnd();
+        }
+    });
+    
+    resultDiv.appendChild(astronautDiv);
+    resultDiv.appendChild(planetDiv);
+    modal.appendChild(resultDiv);
+    modal.appendChild(nextBtn);
+    modal.classList.add('active');
+    modal.focus();
+    trapFocus(modal);
+    // Adskillelsen af showSuccess og showDeath gør det lettere at tilpasse indholdet for hver situation
+}
+
+// Funktion til at tjekke, om spillet er slut
+function checkForEnd() {
+    // Hvis 5 planeter er forsøgt, vises slutskærmen
+    if (attemptedPlanets.size === 5) {
+        showEndScreen(savedPlanets.size);
+    }
+}
+
+// Funktion til at vise slutskærmen
+function showEndScreen(count) {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = '';
+    // Beregner antallet af reddede mennesker (1 milliard pr. planet)
+    const peopleSaved = count * 1000000000;
+    let text = '';
+    let endImage = 'spil-slut-astro.png';
+    // Tilpasser teksten baseret på antallet af reddede planeter
+    if (count === 5) {
+        text = `Du har fundet 5 planeter vi kan bo på og reddet ${peopleSaved.toLocaleString('da-DK')} mennesker.`;
+    } else if (count > 0) {
+        text = `Du har fundet ${count} planeter vi kan bo på og reddet ${peopleSaved.toLocaleString('da-DK')} mennesker.`;
+    } else {
+        text = 'Du fandt ingen planeter vi kan bo på og reddede ingen mennesker.';
+    }
+    // Opretter slutskærmen
+    const endDiv = document.createElement('div');
+    endDiv.classList.add('end-scene', 'fade-in');
+    endDiv.innerHTML = `
+        <h2>SPIL SLUT</h2>
+        <img src="${endImage}" alt="Spil slut" loading="lazy">
+        <p>${text}</p>
+    `;
+    // Opretter en genstart-knap
+    const restartBtn = document.createElement('button');
+    restartBtn.textContent = 'RESTART';
+    restartBtn.classList.add('cartoon-btn', 'return-btn');
+    restartBtn.tabIndex = 0;
+    restartBtn.role = 'button';
+    restartBtn.ariaLabel = 'Restart missionen';
+    restartBtn.addEventListener('click', () => {
+        closeModal();
+        resetGame();
+        returnToFrontPage();
+    });
+    restartBtn.addEventListener('touchstart', () => {
+        restartBtn.classList.add('pulse');
+        if (navigator.vibrate) navigator.vibrate(50);
+        setTimeout(() => restartBtn.classList.remove('pulse'), 500);
+    });
+    restartBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            closeModal();
+            resetGame();
+            returnToFrontPage();
+        }
+    });
+    endDiv.appendChild(restartBtn);
+    modal.appendChild(endDiv);
+    modal.classList.add('active');
+    modal.focus();
+    trapFocus(modal);
+}
+
+// Funktion til at navigere gennem et sort hul
+function travelThroughBlackhole(bh) {
+    // Validerer data for at undgå fejl
+    if (!bh || !bh.image || !bh.targetRoom) {
+        console.error('Invalid black hole data:', bh);
+        return;
+    }
+    // Finder billedet af det sorte hul
+    const bhImg = document.querySelector(`img[src="${bh.image}"]`);
+    if (!bhImg) {
+        console.error(`Black hole image not found for src: ${bh.image}`);
+        return;
+    }
+    // Tilføjer en animationsklasse for rejse gennem sort hul
+    bhImg.classList.add('wormhole-travel');
+    // Skifter til målrummet efter 1 sekund
+    setTimeout(() => {
+        showRoom(bh.targetRoom);
+        bhImg.classList.remove('wormhole-travel');
+    }, 1000);
+    // setTimeout bruges frem for CSS-transition for at sikre præcis timing og synkronisering
+}
+
+// Funktion til at lukke modalen
+function closeModal() {
+    const modal = document.getElementById('modal');
+    modal.classList.remove('active');
+    modal.innerHTML = '';
+    // Gendanner fokus til det sidst aktive element
+    if (lastFocusedElement) lastFocusedElement.focus();
+}
+
+// Funktion til at fange fokus inden for modalen
+function trapFocus(modal) {
+    // Finder alle fokuserbare elementer i modalen
+    const focusable = modal.querySelectorAll('[tabindex], button, img[role="button"]');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    // Håndterer tastaturnavigation
+    modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Tab') {
+            // Forhindrer fokus i at forlade modalen
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
             }
-            if (choice.correct) {
-                if (planetImg) {
-                    planetImg.classList.add('fade-in');
-                    planetImg.src = planet.savedImage;
-                    planetImg.alt = `Beboelig ${planet.name}`;
-                    planetImg.classList.add('saved');
-                    const label = planetImg.parentElement.querySelector('.image-label');
-                    if (label) label.textContent = 'Beboelig';
-                    setTimeout(() => planetImg.classList.remove('fade-in'), 1000);
-                }
-                savedPlanets.add(planet.id);
-                saveProgress();
-                updateCounter();
-                showSuccess(planet, choice);
-            } else {
-                if (planetImg) {
-                    planetImg.classList.add('fade-in');
-                    planetImg.src = planet.image;
-                    planetImg.alt = planet.alt;
-                    planetImg.classList.remove('saved');
-                    const label = planetImg.parentElement.querySelector('.image-label');
-                    if (label) label.textContent = planet.alt;
-                    setTimeout(() => planetImg.classList.remove('fade-in'), 1000);
-                }
-                saveProgress();
-                updateCounter();
-                showDeath(planet, choice);
-            }
         }
+    });
+    // Sætter fokus på det første element
+    first.focus();
+    // trapFocus forbedrer tilgængelighed ved at sikre, at tastaturbrugere forbliver i modalen
+}
 
-        function showDeath(planet, choice) {
-            const modal = document.getElementById('modal');
-            modal.innerHTML = '';
-            const resultDiv = document.createElement('div');
-            resultDiv.classList.add('result-container', 'fade-in');
-            
-            const astronautDiv = document.createElement('div');
-            astronautDiv.classList.add('astronaut-container');
-            astronautDiv.innerHTML = `
-                <img src="${planet.failureAstronaut}" alt="Sad Astronaut on ${planet.name}" loading="lazy">
-                <div class="speech-bubble">
-                    <div class="speech-bubble-title">FORKERT!</div>
-                    ${choice.deathText}
-                </div>
-            `;
-            
-            const planetDiv = document.createElement('div');
-            planetDiv.classList.add('planet-result-container');
-            planetDiv.innerHTML = `
-                <img src="${planet.image}" alt="${planet.alt}" loading="lazy">
-            `;
-            
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'FIND DEN NÆSTE PLANET';
-            nextBtn.classList.add('cartoon-btn', 'return-btn');
-            nextBtn.tabIndex = 0;
-            nextBtn.role = 'button';
-            nextBtn.ariaLabel = 'Find den næste planet';
-            nextBtn.addEventListener('click', () => {
-                closeModal();
-                checkForEnd();
-            });
-            nextBtn.addEventListener('touchstart', () => {
-                nextBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => nextBtn.classList.remove('pulse'), 500);
-            });
-            nextBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    closeModal();
-                    checkForEnd();
-                }
-            });
-            
-            resultDiv.appendChild(astronautDiv);
-            resultDiv.appendChild(planetDiv);
-            modal.appendChild(resultDiv);
-            modal.appendChild(nextBtn);
-            modal.classList.add('active');
-            modal.focus();
-            trapFocus(modal);
-        }
+// Funktion til at initialisere stjernefeltet
+function initStarfield() {
+    const canvas = document.getElementById('starfield');
+    // Sætter canvas-størrelsen til vinduets dimensioner
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const stars = [];
+    // Opretter 200 stjerner med tilfældige positioner, radier og hastigheder
+    for (let i = 0; i < 200; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.5,
+            speed: Math.random() * 0.5 + 0.1
+        });
+    }
+    // Animerer stjernerne
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(star => {
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            // Flytter stjernen mod venstre
+            star.x -= star.speed;
+            // Genplacerer stjernen til højre, når den forlader canvas
+            if (star.x < 0) star.x = canvas.width;
+        });
+        // Gentager animationen
+        requestAnimationFrame(animate);
+    }
+    animate();
+    // Opdaterer canvas-størrelsen ved vinduesændring
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+    // Canvas bruges frem for CSS-animationer for at opnå en mere dynamisk og performant stjernefeltseffekt
+}
 
-        function showSuccess(planet, choice) {
-            const modal = document.getElementById('modal');
-            modal.innerHTML = '';
-            const resultDiv = document.createElement('div');
-            resultDiv.classList.add('result-container', 'fade-in');
-            
-            const astronautDiv = document.createElement('div');
-            astronautDiv.classList.add('astronaut-container');
-            astronautDiv.innerHTML = `
-                <img src="${planet.successAstronaut}" alt="Happy Astronaut on ${planet.name}" loading="lazy">
-                <div class="speech-bubble">
-                    <div class="speech-bubble-title">RIGTIGT!</div>
-                    ${choice.successText}
-                </div>
-            `;
-            
-            const planetDiv = document.createElement('div');
-            planetDiv.classList.add('planet-result-container');
-            planetDiv.innerHTML = `
-                <img src="${planet.savedImage}" alt="Beboelig ${planet.name}" loading="lazy">
-            `;
-            
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = 'FIND DEN NÆSTE PLANET';
-            nextBtn.classList.add('cartoon-btn', 'return-btn');
-            nextBtn.tabIndex = 0;
-            nextBtn.role = 'button';
-            nextBtn.ariaLabel = 'Find den næste planet';
-            nextBtn.addEventListener('click', () => {
-                closeModal();
-                checkForEnd();
-            });
-            nextBtn.addEventListener('touchstart', () => {
-                nextBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => nextBtn.classList.remove('pulse'), 500);
-            });
-            nextBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    closeModal();
-                    checkForEnd();
-                }
-            });
-            
-            resultDiv.appendChild(astronautDiv);
-            resultDiv.appendChild(planetDiv);
-            modal.appendChild(resultDiv);
-            modal.appendChild(nextBtn);
-            modal.classList.add('active');
-            modal.focus();
-            trapFocus(modal);
-        }
-
-        function checkForEnd() {
-            if (attemptedPlanets.size === 5) {
-                showEndScreen(savedPlanets.size);
-            }
-        }
-
-        function showEndScreen(count) {
-            const modal = document.getElementById('modal');
-            modal.innerHTML = '';
-            const peopleSaved = count * 1000000000;
-            let text = '';
-            let endImage = 'spil-slut-astro.png';
-            if (count === 5) {
-                text = `Du har fundet 5 planeter vi kan bo på og reddet ${peopleSaved.toLocaleString('da-DK')} mennesker.`;
-            } else if (count > 0) {
-                text = `Du har fundet ${count} planeter vi kan bo på og reddet ${peopleSaved.toLocaleString('da-DK')} mennesker.`;
-            } else {
-                text = 'Du fandt ingen planeter vi kan bo på og reddede ingen mennesker.';
-            }
-            const endDiv = document.createElement('div');
-            endDiv.classList.add('end-scene', 'fade-in');
-            endDiv.innerHTML = `
-                <h2>SPIL SLUT</h2>
-                <img src="${endImage}" alt="Spil slut" loading="lazy">
-                <p>${text}</p>
-            `;
-            const restartBtn = document.createElement('button');
-            restartBtn.textContent = 'RESTART';
-            restartBtn.classList.add('cartoon-btn', 'return-btn');
-            restartBtn.tabIndex = 0;
-            restartBtn.role = 'button';
-            restartBtn.ariaLabel = 'Restart missionen';
-            restartBtn.addEventListener('click', () => {
-                closeModal();
-                resetGame();
-                returnToFrontPage();
-            });
-            restartBtn.addEventListener('touchstart', () => {
-                restartBtn.classList.add('pulse');
-                if (navigator.vibrate) navigator.vibrate(50);
-                setTimeout(() => restartBtn.classList.remove('pulse'), 500);
-            });
-            restartBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    closeModal();
-                    resetGame();
-                    returnToFrontPage();
-                }
-            });
-            endDiv.appendChild(restartBtn);
-            modal.appendChild(endDiv);
-            modal.classList.add('active');
-            modal.focus();
-            trapFocus(modal);
-        }
-
-        function travelThroughBlackhole(bh) {
-            if (!bh || !bh.image || !bh.targetRoom) {
-                console.error('Invalid black hole data:', bh);
-                return;
-            }
-            const bhImg = document.querySelector(`img[src="${bh.image}"]`);
-            if (!bhImg) {
-                console.error(`Black hole image not found for src: ${bh.image}`);
-                return;
-            }
-            bhImg.classList.add('wormhole-travel');
-            setTimeout(() => {
-                showRoom(bh.targetRoom);
-                bhImg.classList.remove('wormhole-travel');
-            }, 1000);
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('modal');
-            modal.classList.remove('active');
-            modal.innerHTML = '';
-            if (lastFocusedElement) lastFocusedElement.focus();
-        }
-
-        function trapFocus(modal) {
-            const focusable = modal.querySelectorAll('[tabindex], button, img[role="button"]');
-            if (focusable.length === 0) return;
-            const first = focusable[0];
-            const last = focusable[focusable.length - 1];
-            modal.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeModal();
-                if (e.key === 'Tab') {
-                    if (e.shiftKey && document.activeElement === first) {
-                        e.preventDefault();
-                        last.focus();
-                    } else if (!e.shiftKey && document.activeElement === last) {
-                        e.preventDefault();
-                        first.focus();
-                    }
-                }
-            });
-            first.focus();
-        }
-
-        function initStarfield() {
-            const canvas = document.getElementById('starfield');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            const ctx = canvas.getContext('2d');
-            const stars = [];
-            for (let i = 0; i < 200; i++) {
-                stars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 1.5,
-                    speed: Math.random() * 0.5 + 0.1
-                });
-            }
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                stars.forEach(star => {
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fill();
-                    star.x -= star.speed;
-                    if (star.x < 0) star.x = canvas.width;
-                });
-                requestAnimationFrame(animate);
-            }
-            animate();
-            window.addEventListener('resize', () => {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            });
-        }
-
-        window.onload = init;
+// Initialiserer spillet, når siden indlæses
+window.onload = init;
     </script>
 </body>
 </html>
